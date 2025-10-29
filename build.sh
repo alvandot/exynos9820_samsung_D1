@@ -99,7 +99,7 @@ cd "${LOCATION}"
 
 # Make file
 make ARCH=arm64 -j32 O=${OUT_DIR} mrproper
-make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config || exit 1
+make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config ksu.config || exit 1
 make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
