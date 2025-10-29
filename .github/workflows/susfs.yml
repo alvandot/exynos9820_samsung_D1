@@ -29,7 +29,9 @@ jobs:
     steps:
     - name: 1. import kernel source
       uses: actions/checkout@v4   
-      
+      with:
+        submodules: 'recursive'     
+        
     - name: 2. install package
       run: |
         sudo apt-get update
