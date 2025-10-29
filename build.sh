@@ -63,7 +63,7 @@ case "${MODEL}" in
 esac
 
 # submodule
-git submodule init && git submodule update
+git submodule init && git submodule update --remote
 
 # Setting toolchain
 TOOLCHAIN_URL="https://github.com/GoRhanHee/exynos9820_toolchain/releases/download/toolchain/toolchain.tar.xz"
