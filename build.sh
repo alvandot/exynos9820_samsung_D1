@@ -62,6 +62,9 @@ case "${MODEL}" in
         ;;            
 esac
 
+# submodule
+git submodule init && git submodule update
+
 # Compile Setting (OEM Option)
 export ARCH=arm64
 export PLATFORM_VERSION=12
