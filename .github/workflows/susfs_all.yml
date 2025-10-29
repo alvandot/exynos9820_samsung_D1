@@ -1,4 +1,4 @@
-name: Kernel All Build (Ramdisk) 
+name: Kernel All Build (SuSFS) 
 
 on:
   workflow_dispatch:
@@ -45,14 +45,14 @@ jobs:
 
     - name: 4. kernel build
       run: |
-        echo "Starting build for ${{ github.event.inputs.MODEL }}_Kernel File"
+        echo "Starting build for ${{ github.event.inputs.MODEL }}_SuSFS_Kernel File"
     
         ./build.sh "${{ github.event.inputs.MODEL }}"
         
     - name: 5. Upload Artifacts Kernel File
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ matrix.model }}_Ramdisk
+        name: ${{ matrix.model }}_SuSFS
         path: |
           gorhanhee/*.zip  
           gorhanhee/*.tar   
