@@ -45,9 +45,9 @@ jobs:
 
     - name: 4. kernel build
       run: |
-        echo "Starting build for ${{ github.event.inputs.MODEL }}_SuSFS_Kernel File"
+        echo "Starting build for ${{ matrix.model }}_SuSFS_Kernel File"
     
-        ./build.sh "${{ github.event.inputs.MODEL }}"
+        ./build.sh "${{ matrix.model }}"
         
     - name: 5. Upload Artifacts Kernel File
       uses: actions/upload-artifact@v4
