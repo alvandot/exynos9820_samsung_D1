@@ -26,6 +26,14 @@ on:
         required: false
         type: boolean
         default: false
+      KERNELPATCH_VARIANT:
+        description: 'KernelPatch variant (sukisu for SukiSU Ultra, original for bmax121)'
+        required: false
+        type: choice
+        default: 'sukisu'
+        options:
+          - sukisu
+          - original
 
 jobs:
   build:
@@ -54,7 +62,8 @@ jobs:
         echo "Starting build for ${{ github.event.inputs.MODEL }}_Kernel File"
         if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
           export KERNELPATCH_ENABLED=1
-          echo "KernelPatch integration is enabled"
+          export KERNELPATCH_VARIANT="${{ github.event.inputs.KERNELPATCH_VARIANT }}"
+          echo "KernelPatch integration is enabled (variant: $KERNELPATCH_VARIANT)"
         fi
         ./build.sh "${{ github.event.inputs.MODEL }}"
         

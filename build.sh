@@ -105,36 +105,50 @@ make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 
 # ===============================================
-# KernelPatch Integration
+# KernelPatch Integration (SukiSU Ultra Compatible)
 # ===============================================
 KERNELPATCH_ENABLED=${KERNELPATCH_ENABLED:-0}
-KERNELPATCH_VERSION=${KERNELPATCH_VERSION:-"0.12.3"}
+KERNELPATCH_VARIANT=${KERNELPATCH_VARIANT:-"sukisu"}  # Options: "sukisu" or "original"
+SUKISU_KP_VERSION=${SUKISU_KP_VERSION:-"0.12.2"}
+ORIGINAL_KP_VERSION=${ORIGINAL_KP_VERSION:-"0.12.3"}
 
 if [ "$KERNELPATCH_ENABLED" = "1" ]; then
-    echo "KernelPatch integration enabled (version: $KERNELPATCH_VERSION)"
-    
     KERNELPATCH_DIR="${LOCATION}/KernelPatch"
     mkdir -p "$KERNELPATCH_DIR"
     
     KPTOOLS="$KERNELPATCH_DIR/kptools"
     KPIMG="$KERNELPATCH_DIR/kpimg"
     
-    # Download prebuilt kpimg-android if not exists
+    if [ "$KERNELPATCH_VARIANT" = "sukisu" ]; then
+        # SukiSU Ultra KernelPatch variant
+        echo "KernelPatch integration enabled (SukiSU Ultra variant, version: $SUKISU_KP_VERSION)"
+        KP_BASE_URL="https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/${SUKISU_KP_VERSION}"
+        KPIMG_FILE="kpimg"
+        KPTOOLS_FILE="kptools"
+    else
+        # Original KernelPatch
+        echo "KernelPatch integration enabled (Original variant, version: $ORIGINAL_KP_VERSION)"
+        KP_BASE_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}"
+        KPIMG_FILE="kpimg-android"
+        KPTOOLS_FILE="kptools-linux"
+    fi
+    
+    # Download prebuilt kpimg if not exists
     if [ ! -f "$KPIMG" ]; then
-        echo "Downloading KernelPatch kpimg-android..."
-        curl -L -o "$KPIMG" "https://github.com/bmax121/KernelPatch/releases/download/${KERNELPATCH_VERSION}/kpimg-android"
+        echo "Downloading KernelPatch kpimg..."
+        curl -L -o "$KPIMG" "${KP_BASE_URL}/${KPIMG_FILE}"
         if [ $? -ne 0 ]; then
-            echo "Error: Failed to download kpimg-android"
+            echo "Error: Failed to download kpimg"
         fi
     fi
     
-    # Download prebuilt kptools-linux if not exists
+    # Download prebuilt kptools if not exists
     if [ ! -f "$KPTOOLS" ]; then
-        echo "Downloading KernelPatch kptools-linux..."
-        curl -L -o "$KPTOOLS" "https://github.com/bmax121/KernelPatch/releases/download/${KERNELPATCH_VERSION}/kptools-linux"
+        echo "Downloading KernelPatch kptools..."
+        curl -L -o "$KPTOOLS" "${KP_BASE_URL}/${KPTOOLS_FILE}"
         chmod +x "$KPTOOLS"
         if [ $? -ne 0 ]; then
-            echo "Error: Failed to download kptools-linux"
+            echo "Error: Failed to download kptools"
         fi
     fi
     
@@ -147,6 +161,7 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
         
         if [ -f "$PATCHED_IMAGE" ]; then
             echo "Kernel patched successfully with KernelPatch!"
+            echo "Variant: $KERNELPATCH_VARIANT"
             IMAGE="$PATCHED_IMAGE"
         else
             echo "Warning: KernelPatch patching failed, using original kernel"
