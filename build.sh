@@ -136,19 +136,20 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
     # Download prebuilt kpimg if not exists
     if [ ! -f "$KPIMG" ]; then
         echo "Downloading KernelPatch kpimg..."
-        curl -L -o "$KPIMG" "${KP_BASE_URL}/${KPIMG_FILE}"
-        if [ $? -ne 0 ]; then
+        if ! curl -L -f -o "$KPIMG" "${KP_BASE_URL}/${KPIMG_FILE}"; then
             echo "Error: Failed to download kpimg"
+            rm -f "$KPIMG"
         fi
     fi
     
     # Download prebuilt kptools if not exists
     if [ ! -f "$KPTOOLS" ]; then
         echo "Downloading KernelPatch kptools..."
-        curl -L -o "$KPTOOLS" "${KP_BASE_URL}/${KPTOOLS_FILE}"
-        chmod +x "$KPTOOLS"
-        if [ $? -ne 0 ]; then
+        if ! curl -L -f -o "$KPTOOLS" "${KP_BASE_URL}/${KPTOOLS_FILE}"; then
             echo "Error: Failed to download kptools"
+            rm -f "$KPTOOLS"
+        else
+            chmod +x "$KPTOOLS"
         fi
     fi
     
