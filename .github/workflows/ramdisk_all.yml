@@ -3,18 +3,13 @@ name: Kernel All Build (Ramdisk)
 on:
   workflow_dispatch:
     inputs:
-      SUKISU_ENABLED:
-        description: 'Enable SukiSU Ultra (kernel-level root for Non-GKI)'
-        required: false
-        type: boolean
-        default: false
       KERNELPATCH_ENABLED:
-        description: 'Enable KernelPatch (image-level patching)'
+        description: 'Enable KernelPatch for root (recommended for Non-GKI)'
         required: false
         type: boolean
         default: false
       KERNELPATCH_VARIANT:
-        description: 'KernelPatch variant (sukisu for SukiSU Ultra, original for bmax121)'
+        description: 'KernelPatch variant'
         required: false
         type: choice
         default: 'sukisu'
@@ -66,14 +61,7 @@ jobs:
       run: |
         echo "Starting build for ${{ matrix.model }}_Kernel File"
         
-        # SukiSU Ultra (kernel-level integration for Non-GKI)
-        if [ "${{ github.event.inputs.SUKISU_ENABLED }}" = "true" ]; then
-          export SUKISU_ENABLED=1
-          export SUKISU_MANUAL_HOOK=1
-          echo "SukiSU Ultra integration is enabled (Non-GKI mode with manual hooks)"
-        fi
-        
-        # KernelPatch (image-level patching)
+        # KernelPatch (image-level patching - recommended for Non-GKI)
         if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
           export KERNELPATCH_ENABLED=1
           export KERNELPATCH_VARIANT="${{ github.event.inputs.KERNELPATCH_VARIANT }}"
