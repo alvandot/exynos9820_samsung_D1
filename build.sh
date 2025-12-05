@@ -108,48 +108,35 @@ IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 # KernelPatch Integration
 # ===============================================
 KERNELPATCH_ENABLED=${KERNELPATCH_ENABLED:-0}
+KERNELPATCH_VERSION=${KERNELPATCH_VERSION:-"0.12.3"}
 
 if [ "$KERNELPATCH_ENABLED" = "1" ]; then
-    echo "KernelPatch integration enabled"
+    echo "KernelPatch integration enabled (version: $KERNELPATCH_VERSION)"
     
     KERNELPATCH_DIR="${LOCATION}/KernelPatch"
+    mkdir -p "$KERNELPATCH_DIR"
     
-    # Clone KernelPatch if not exists
-    if [ ! -d "$KERNELPATCH_DIR" ]; then
-        echo "Cloning KernelPatch repository..."
-        git clone --depth=1 https://github.com/bmax121/KernelPatch.git "$KERNELPATCH_DIR"
-    fi
+    KPTOOLS="$KERNELPATCH_DIR/kptools"
+    KPIMG="$KERNELPATCH_DIR/kpimg"
     
-    # Check for bare-metal cross compiler
-    if [ -z "$TARGET_COMPILE" ]; then
-        # Try to use aarch64-none-elf- if available, otherwise use aarch64-linux-gnu-
-        if command -v aarch64-none-elf-gcc &> /dev/null; then
-            export TARGET_COMPILE=aarch64-none-elf-
-        elif command -v aarch64-linux-gnu-gcc &> /dev/null; then
-            export TARGET_COMPILE=aarch64-linux-gnu-
-        else
-            echo "Warning: No suitable cross compiler found for KernelPatch"
-            echo "Please install aarch64-none-elf toolchain or set TARGET_COMPILE"
+    # Download prebuilt kpimg-android if not exists
+    if [ ! -f "$KPIMG" ]; then
+        echo "Downloading KernelPatch kpimg-android..."
+        curl -L -o "$KPIMG" "https://github.com/bmax121/KernelPatch/releases/download/${KERNELPATCH_VERSION}/kpimg-android"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to download kpimg-android"
         fi
     fi
     
-    # Build kpimg
-    echo "Building KernelPatch kpimg..."
-    cd "$KERNELPATCH_DIR/kernel"
-    export ANDROID=1
-    make clean 2>/dev/null || true
-    make -j$(nproc) || echo "Warning: kpimg build failed"
-    
-    # Build kptools
-    echo "Building KernelPatch kptools..."
-    cd "$KERNELPATCH_DIR/tools"
-    make clean 2>/dev/null || true
-    make -j$(nproc) || echo "Warning: kptools build failed"
-    
-    cd "${LOCATION}"
-    
-    KPTOOLS="$KERNELPATCH_DIR/tools/kptools"
-    KPIMG="$KERNELPATCH_DIR/kernel/kpimg"
+    # Download prebuilt kptools-linux if not exists
+    if [ ! -f "$KPTOOLS" ]; then
+        echo "Downloading KernelPatch kptools-linux..."
+        curl -L -o "$KPTOOLS" "https://github.com/bmax121/KernelPatch/releases/download/${KERNELPATCH_VERSION}/kptools-linux"
+        chmod +x "$KPTOOLS"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to download kptools-linux"
+        fi
+    fi
     
     # Patch kernel image if tools are available
     if [ -f "$KPTOOLS" ] && [ -f "$KPIMG" ]; then
@@ -159,13 +146,15 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
         "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"
         
         if [ -f "$PATCHED_IMAGE" ]; then
-            echo "Kernel patched successfully"
+            echo "Kernel patched successfully with KernelPatch!"
             IMAGE="$PATCHED_IMAGE"
         else
-            echo "Warning: KernelPatch failed, using original kernel"
+            echo "Warning: KernelPatch patching failed, using original kernel"
         fi
     else
         echo "Warning: KernelPatch tools not found, using original kernel"
+        echo "  kptools exists: $([ -f "$KPTOOLS" ] && echo 'yes' || echo 'no')"
+        echo "  kpimg exists: $([ -f "$KPIMG" ] && echo 'yes' || echo 'no')"
     fi
 fi
 # ===============================================
