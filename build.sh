@@ -104,6 +104,74 @@ make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 
+# ===============================================
+# KernelPatch Integration
+# ===============================================
+KERNELPATCH_ENABLED=${KERNELPATCH_ENABLED:-0}
+
+if [ "$KERNELPATCH_ENABLED" = "1" ]; then
+    echo "KernelPatch integration enabled"
+    
+    KERNELPATCH_DIR="${LOCATION}/KernelPatch"
+    
+    # Clone KernelPatch if not exists
+    if [ ! -d "$KERNELPATCH_DIR" ]; then
+        echo "Cloning KernelPatch repository..."
+        git clone --depth=1 https://github.com/bmax121/KernelPatch.git "$KERNELPATCH_DIR"
+    fi
+    
+    # Check for bare-metal cross compiler
+    if [ -z "$TARGET_COMPILE" ]; then
+        # Try to use aarch64-none-elf- if available, otherwise use aarch64-linux-gnu-
+        if command -v aarch64-none-elf-gcc &> /dev/null; then
+            export TARGET_COMPILE=aarch64-none-elf-
+        elif command -v aarch64-linux-gnu-gcc &> /dev/null; then
+            export TARGET_COMPILE=aarch64-linux-gnu-
+        else
+            echo "Warning: No suitable cross compiler found for KernelPatch"
+            echo "Please install aarch64-none-elf toolchain or set TARGET_COMPILE"
+        fi
+    fi
+    
+    # Build kpimg
+    echo "Building KernelPatch kpimg..."
+    cd "$KERNELPATCH_DIR/kernel"
+    export ANDROID=1
+    make clean 2>/dev/null || true
+    make -j$(nproc) || echo "Warning: kpimg build failed"
+    
+    # Build kptools
+    echo "Building KernelPatch kptools..."
+    cd "$KERNELPATCH_DIR/tools"
+    make clean 2>/dev/null || true
+    make -j$(nproc) || echo "Warning: kptools build failed"
+    
+    cd "${LOCATION}"
+    
+    KPTOOLS="$KERNELPATCH_DIR/tools/kptools"
+    KPIMG="$KERNELPATCH_DIR/kernel/kpimg"
+    
+    # Patch kernel image if tools are available
+    if [ -f "$KPTOOLS" ] && [ -f "$KPIMG" ]; then
+        echo "Patching kernel with KernelPatch..."
+        PATCHED_IMAGE="${OUT_DIR}/arch/arm64/boot/Image-kp"
+        
+        "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"
+        
+        if [ -f "$PATCHED_IMAGE" ]; then
+            echo "Kernel patched successfully"
+            IMAGE="$PATCHED_IMAGE"
+        else
+            echo "Warning: KernelPatch failed, using original kernel"
+        fi
+    else
+        echo "Warning: KernelPatch tools not found, using original kernel"
+    fi
+fi
+# ===============================================
+# End KernelPatch Integration
+# ===============================================
+
 # Make boot.img file
 	
 cp "${IMAGE}" "${AIK_DIR}/split_img/boot.img-kernel"
