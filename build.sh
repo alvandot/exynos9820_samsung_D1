@@ -78,8 +78,12 @@ if [ "$SUKISU_ENABLED" = "1" ]; then
     # Update and checkout branch
     cd "$KERNELSU_DIR"
     git fetch --all
-    git checkout "$SUKISU_BRANCH" || git checkout main
-    git pull || true
+    if git checkout "$SUKISU_BRANCH"; then
+        git pull origin "$SUKISU_BRANCH" || true
+    else
+        git checkout main
+        git pull origin main || true
+    fi
     cd "$LOCATION"
     
     # Create symlink to kernelsu driver
