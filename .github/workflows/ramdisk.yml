@@ -1,21 +1,7 @@
-name: Kernel Build N970F (Ramdisk) 
+name: Kernel Build N970F with SukiSU Ultra
 
 on:
   workflow_dispatch:
-    inputs:
-      KERNELPATCH_ENABLED:
-        description: 'Enable KernelPatch for root (recommended for Non-GKI)'
-        required: false
-        type: boolean
-        default: false
-      KERNELPATCH_VARIANT:
-        description: 'KernelPatch variant'
-        required: false
-        type: choice
-        default: 'sukisu'
-        options:
-          - sukisu
-          - original
 
 jobs:
   build:
@@ -39,23 +25,15 @@ jobs:
     - name: 3. setting permission
       run: chmod +x build.sh
 
-    - name: 4. kernel build
+    - name: 4. kernel build with SukiSU Ultra
       run: |
-        echo "Starting build for N970F (D1) Kernel"
-        
-        # KernelPatch (image-level patching - recommended for Non-GKI)
-        if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
-          export KERNELPATCH_ENABLED=1
-          export KERNELPATCH_VARIANT="${{ github.event.inputs.KERNELPATCH_VARIANT }}"
-          echo "KernelPatch integration is enabled (variant: $KERNELPATCH_VARIANT)"
-        fi
-        
+        echo "Starting build for N970F (D1) Kernel with SukiSU Ultra root"
         ./build.sh N970F
         
     - name: 5. Upload Artifacts Kernel File
       uses: actions/upload-artifact@v4
       with:
-        name: N970F_Ramdisk
+        name: N970F_SukiSU_Ultra
         path: |
           gorhanhee/*.zip  
           gorhanhee/*.tar   

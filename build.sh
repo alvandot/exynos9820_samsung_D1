@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# This branch is dedicated to N970F (D1) only
+# ===============================================
+# N970F (Galaxy Note 10) Kernel Build Script
+# with SukiSU Ultra Root (KernelPatch)
+# ===============================================
+
 MODEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 case "$MODEL" in
@@ -15,33 +19,6 @@ case "$MODEL" in
 esac
 
 LOCATION=$(pwd)
-
-# ===============================================
-# SukiSU Ultra Integration (Kernel Source Level) - EXPERIMENTAL
-# WARNING: This is experimental for Non-GKI kernels!
-# For stable root solution, use KernelPatch instead.
-# ===============================================
-SUKISU_ENABLED=${SUKISU_ENABLED:-0}
-
-if [ "$SUKISU_ENABLED" = "1" ]; then
-    echo "=============================================="
-    echo "⚠️  WARNING: SukiSU Ultra kernel-level integration"
-    echo "    is EXPERIMENTAL for Non-GKI kernels!"
-    echo ""
-    echo "For stable root solution, use KernelPatch instead:"
-    echo "  KERNELPATCH_ENABLED=1 ./build.sh $MODEL"
-    echo "=============================================="
-    echo ""
-    echo "Skipping SukiSU kernel-level integration..."
-    echo "Use KernelPatch for proven root solution on Non-GKI kernels."
-    echo ""
-    # SukiSU kernel integration disabled for Non-GKI
-    # The kernel-level integration requires extensive manual patching
-    # that is not compatible with all Non-GKI kernel versions
-fi
-# ===============================================
-# End SukiSU Ultra Integration
-# ===============================================
 
 # tzdev - N970F uses tzdev_B
 rm -rf "${LOCATION}/drivers/misc/tzdev"
@@ -90,130 +67,87 @@ make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 
 # ===============================================
-# KernelPatch Integration (SukiSU Ultra Compatible)
+# KernelPatch Integration - SukiSU Ultra (Default)
+# Always enabled for N970F builds
 # ===============================================
-KERNELPATCH_ENABLED=${KERNELPATCH_ENABLED:-0}
-KERNELPATCH_VARIANT=${KERNELPATCH_VARIANT:-"sukisu"}  # Options: "sukisu" or "original"
-SUKISU_KP_VERSION=${SUKISU_KP_VERSION:-"0.12.2"}
-ORIGINAL_KP_VERSION=${ORIGINAL_KP_VERSION:-"0.12.3"}
+echo "=============================================="
+echo "🔓 SukiSU Ultra Root Integration"
+echo "   Using KernelPatch for Non-GKI kernel"
+echo "=============================================="
 
-if [ "$KERNELPATCH_ENABLED" = "1" ]; then
-    KERNELPATCH_DIR="${LOCATION}/KernelPatch"
-    mkdir -p "$KERNELPATCH_DIR"
-    
-    KPTOOLS="$KERNELPATCH_DIR/kptools"
-    KPIMG="$KERNELPATCH_DIR/kpimg"
-    
-    # kptools-linux is always from original KernelPatch (runs on x86_64 Linux host)
-    KPTOOLS_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}/kptools-linux"
-    
-    if [ "$KERNELPATCH_VARIANT" = "sukisu" ]; then
-        # SukiSU Ultra KernelPatch variant - use SukiSU kpimg for Android
-        echo "KernelPatch integration enabled (SukiSU Ultra variant)"
-        echo "  kpimg: SukiSU v${SUKISU_KP_VERSION}"
-        echo "  kptools: Original v${ORIGINAL_KP_VERSION} (host tool)"
-        KPIMG_URL="https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/${SUKISU_KP_VERSION}/kpimg"
-    else
-        # Original KernelPatch
-        echo "KernelPatch integration enabled (Original variant, version: $ORIGINAL_KP_VERSION)"
-        KPIMG_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}/kpimg-android"
-    fi
-    
-    # Download prebuilt kpimg if not exists
-    if [ ! -f "$KPIMG" ]; then
-        echo "Downloading KernelPatch kpimg..."
-        if ! curl -L -f -o "$KPIMG" "$KPIMG_URL"; then
-            echo "Error: Failed to download kpimg. Check internet connection."
-            echo "Build will continue with original kernel (no root)."
-            rm -f "$KPIMG"
-        fi
-    fi
-    
-    # Download prebuilt kptools (Linux x86_64 version for host)
-    if [ ! -f "$KPTOOLS" ]; then
-        echo "Downloading KernelPatch kptools (Linux x86_64)..."
-        if ! curl -L -f -o "$KPTOOLS" "$KPTOOLS_URL"; then
-            echo "Error: Failed to download kptools. Check internet connection."
-            echo "Build will continue with original kernel (no root)."
-            rm -f "$KPTOOLS"
-        else
-            chmod +x "$KPTOOLS"
-        fi
-    fi
-    
-    # Patch kernel image if tools are available
-    if [ -f "$KPTOOLS" ] && [ -f "$KPIMG" ]; then
-        echo "Patching kernel with KernelPatch..."
-        PATCHED_IMAGE="${OUT_DIR}/arch/arm64/boot/Image-kp"
-        
-        if "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"; then
-            if [ -f "$PATCHED_IMAGE" ]; then
-                echo "Kernel patched successfully with KernelPatch!"
-                echo "Variant: $KERNELPATCH_VARIANT"
-                IMAGE="$PATCHED_IMAGE"
-            else
-                echo "Warning: KernelPatch patching failed, using original kernel"
-            fi
-        else
-            echo "Error: KernelPatch tool execution failed"
-            echo "Using original kernel (no root)"
-        fi
-    else
-        echo "Warning: KernelPatch tools not found, using original kernel"
-        echo "  kptools exists: $([ -f "$KPTOOLS" ] && echo 'yes' || echo 'no')"
-        echo "  kpimg exists: $([ -f "$KPIMG" ] && echo 'yes' || echo 'no')"
+KERNELPATCH_DIR="${LOCATION}/KernelPatch"
+mkdir -p "$KERNELPATCH_DIR"
+
+KPTOOLS="$KERNELPATCH_DIR/kptools"
+KPIMG="$KERNELPATCH_DIR/kpimg"
+
+# Version configuration
+SUKISU_KP_VERSION="0.12.2"
+ORIGINAL_KP_VERSION="0.12.3"
+
+# kptools-linux is from original KernelPatch (runs on x86_64 Linux host)
+KPTOOLS_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}/kptools-linux"
+
+# SukiSU Ultra kpimg for Android
+echo "KernelPatch: SukiSU Ultra variant"
+echo "  kpimg: SukiSU v${SUKISU_KP_VERSION}"
+echo "  kptools: Original v${ORIGINAL_KP_VERSION} (host tool)"
+KPIMG_URL="https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/${SUKISU_KP_VERSION}/kpimg"
+
+# Download prebuilt kpimg
+if [ ! -f "$KPIMG" ]; then
+    echo "Downloading KernelPatch kpimg..."
+    if ! curl -L -f -o "$KPIMG" "$KPIMG_URL"; then
+        echo "Error: Failed to download kpimg. Check internet connection."
+        rm -f "$KPIMG"
+        exit 1
     fi
 fi
+
+# Download prebuilt kptools (Linux x86_64 version for host)
+if [ ! -f "$KPTOOLS" ]; then
+    echo "Downloading KernelPatch kptools (Linux x86_64)..."
+    if ! curl -L -f -o "$KPTOOLS" "$KPTOOLS_URL"; then
+        echo "Error: Failed to download kptools. Check internet connection."
+        rm -f "$KPTOOLS"
+        exit 1
+    else
+        chmod +x "$KPTOOLS"
+    fi
+fi
+
+# Patch kernel image
+if [ -f "$KPTOOLS" ] && [ -f "$KPIMG" ]; then
+    echo "Patching kernel with KernelPatch (SukiSU Ultra)..."
+    PATCHED_IMAGE="${OUT_DIR}/arch/arm64/boot/Image-kp"
+    
+    if "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"; then
+        if [ -f "$PATCHED_IMAGE" ]; then
+            echo "✅ Kernel patched successfully with SukiSU Ultra!"
+            IMAGE="$PATCHED_IMAGE"
+        else
+            echo "Error: KernelPatch patching failed"
+            exit 1
+        fi
+    else
+        echo "Error: KernelPatch tool execution failed"
+        exit 1
+    fi
+else
+    echo "Error: KernelPatch tools not found"
+    exit 1
+fi
+echo "=============================================="
 # ===============================================
 # End KernelPatch Integration
 # ===============================================
 
 # Make boot.img file
-	
 cp "${IMAGE}" "${AIK_DIR}/split_img/boot.img-kernel"
 
+# N970F board identifier
 BOARD="${AIK_DIR}/split_img/boot.img-board"
-case "$MODEL" in
-    G970F )
-        echo "SRPRI28A016KU" > "$BOARD"
-        ;;
-    G970N )
-        echo "SRPRI28C007KU" > "$BOARD"
-        ;;
-    G973F )
-        echo "SRPRI28B016KU" > "$BOARD"
-        ;;            
-    G973N )
-        echo "SRPRI28D007KU" > "$BOARD"
-        ;;
-    G975F )
-        echo "SRPRI17C016KU" > "$BOARD"
-        ;;        
-    G975N )
-        echo "SRPRI28E007KU" > "$BOARD"
-        ;;
-    G977B )
-        echo "SRPSC04B014KU" > "$BOARD"
-        ;;        
-    G977N )
-        echo "SRPRK21D006KU" > "$BOARD"
-        ;;
-    N970F )
-    	echo "SRPSD26B009KU" > "$BOARD"
-    	;;
-    N971N )
-        echo "SRPSD23A002KU" > "$BOARD"
-        ;;
-    N975F )
-    	echo "SRPSC14B009KU" > "$BOARD"
-    	;;
-    N976B )
-        echo "SRPSC14C009KU" > "$BOARD"
-        ;;        
-    N976N )
-        echo "SRPSD23C002KU" > "$BOARD"
-        ;;
-esac
+echo "SRPSD26B009KU" > "$BOARD"
 
 cd "${AIK_DIR}"
 
@@ -222,224 +156,47 @@ cd "${AIK_DIR}"
 cd "${LOCATION}"
 mv "${AIK_DIR}/image-new.img" "${GORHANHEE}/boot.img"
 
-# Make dt.img file
+# Make dt.img file - N970F uses exynos9825
 cd "${LOCATION}"
-case "${MODEL}" in
-    G970F | G970N | G973F | G973N | G975F | G975N | G977B | G977N )
-	python3 early_setting/mkdtboimg.py create dt.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/exynos/exynos9820.dtb --custom0=0x00 --custom1=0xff --id=0x0 --rev=0x0 
-        ;;  
-    N970F | N971N | N975F | N976B | N976N )
-	python3 early_setting/mkdtboimg.py create dt.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/exynos/exynos9825.dtb --custom0=0x00 --custom1=0xff --id=0x0 --rev=0x0 
-        ;;              
-esac
+python3 early_setting/mkdtboimg.py create dt.img \
+  --page_size=2048 \
+  --version=0 \
+  --id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/exynos/exynos9825.dtb --custom0=0x00 --custom1=0xff --id=0x0 --rev=0x0 
 mv "dt.img" "${GORHANHEE}/dt.img"
 
-# Make dtbo.img file
+# Make dtbo.img file - N970F specific
 cd "${LOCATION}"
-case "${MODEL}" in
-    G970F )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_20.dtbo --custom0=0x14 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_22.dtbo --custom0=0x16 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_24.dtbo --custom0=0x18 --custom1=0x18 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_eur_open_25.dtbo --custom0=0x19 --custom1=0xff --id=0x0 --rev=0x0 	
-        ;;
-    G970N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_kor_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_kor_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_kor_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_kor_20.dtbo --custom0=0x14 --custom1=0x18 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond0lte_kor_25.dtbo --custom0=0x19 --custom1=0xff --id=0x0 --rev=0x0
-        ;;
-    G973F )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_20.dtbo --custom0=0x14 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_23.dtbo --custom0=0x17 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_24.dtbo --custom0=0x18 --custom1=0x19 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_eur_open_26.dtbo --custom0=0x1a --custom1=0xff --id=0x0 --rev=0x0 
-        ;;        
-    G973N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_20.dtbo --custom0=0x14 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_21.dtbo --custom0=0x15 --custom1=0x19 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond1lte_kor_26.dtbo --custom0=0x1a --custom1=0xff --id=0x0 --rev=0x0
-        ;;
-    G975F )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_04.dtbo --custom0=0x04 --custom1=0x0f --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_16.dtbo --custom0=0x10 --custom1=0x10 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_20.dtbo --custom0=0x14 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_23.dtbo --custom0=0x17 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_24.dtbo --custom0=0x18 --custom1=0x18 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_25.dtbo --custom0=0x19 --custom1=0x19 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_eur_open_26.dtbo --custom0=0x1a --custom1=0xff --id=0x0 --rev=0x0 
-  	;;
-    G975N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_20.dtbo --custom0=0x14 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_24.dtbo --custom0=0x18 --custom1=0x18 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_25.dtbo --custom0=0x19 --custom1=0x19 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyond2lte_kor_26.dtbo --custom0=0x1a --custom1=0xff --id=0x0 --rev=0x0
-        ;;
-    G977B )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_00.dtbo --custom0=0x00 --custom1=0x00 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_01.dtbo --custom0=0x01 --custom1=0x01 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_02.dtbo --custom0=0x02 --custom1=0x02 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_03.dtbo --custom0=0x03 --custom1=0x03 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_04.dtbo --custom0=0x04 --custom1=0x04 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_05.dtbo --custom0=0x05 --custom1=0x05 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_06.dtbo --custom0=0x06 --custom1=0x06 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_07.dtbo --custom0=0x07 --custom1=0x07 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_eur_open_08.dtbo --custom0=0x08 --custom1=0xff --id=0x0 --rev=0x0
-        ;;         
-    G977N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_00.dtbo --custom0=0x00 --custom1=0x00 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_01.dtbo --custom0=0x01 --custom1=0x01 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_02.dtbo --custom0=0x02 --custom1=0x02 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_03.dtbo --custom0=0x03 --custom1=0x03 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_04.dtbo --custom0=0x04 --custom1=0x04 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_05.dtbo --custom0=0x05 --custom1=0x05 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_06.dtbo --custom0=0x06 --custom1=0x06 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_07.dtbo --custom0=0x07 --custom1=0x07 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-beyondx_kor_08.dtbo --custom0=0x08 --custom1=0xff --id=0x0 --rev=0x0
-        ;; 
-    N970F )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_19.dtbo --custom0=0x13 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_23.dtbo --custom0=0x17 --custom1=0xff --id=0x0 --rev=0x0
-        ;;        
-    N971N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1x_kor_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1x_kor_19.dtbo --custom0=0x13 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1x_kor_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1x_kor_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1x_kor_23.dtbo --custom0=0x17 --custom1=0xff --id=0x0 --rev=0x0
-        ;;
-    N975F )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_02.dtbo --custom0=0x02 --custom1=0x0f --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_16.dtbo --custom0=0x10 --custom1=0x10 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_20.dtbo --custom0=0x14 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_23.dtbo --custom0=0x17 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_24.dtbo --custom0=0x18 --custom1=0xff --id=0x0 --rev=0x0
-        ;;
-    N976B )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_02.dtbo --custom0=0x02 --custom1=0x0f --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_16.dtbo --custom0=0x10 --custom1=0x10 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_19.dtbo --custom0=0x13 --custom1=0x13 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_20.dtbo --custom0=0x14 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_23.dtbo --custom0=0x17 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_eur_open_24.dtbo --custom0=0x18 --custom1=0xff --id=0x0 --rev=0x0    
-        ;;                  
-    N976N )
-        python3 early_setting/mkdtboimg.py create dtbo.img \
-  	--page_size=2048 \
-  	--version=0 \
-  	--id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_02.dtbo --custom0=0x02 --custom1=0x0f --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_16.dtbo --custom0=0x10 --custom1=0x10 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_17.dtbo --custom0=0x11 --custom1=0x11 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_19.dtbo --custom0=0x13 --custom1=0x14 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_23.dtbo --custom0=0x17 --custom1=0x17 --id=0x0 --rev=0x0 \
-  	${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d2x_kor_24.dtbo --custom0=0x18 --custom1=0xff --id=0x0 --rev=0x0
-        ;;        
-esac
+python3 early_setting/mkdtboimg.py create dtbo.img \
+  --page_size=2048 \
+  --version=0 \
+  --id=0x0 --rev=0x0 --custom0=0x0 --custom1=0x0 --custom2=0x0 --custom3=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_18.dtbo --custom0=0x12 --custom1=0x12 --id=0x0 --rev=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_19.dtbo --custom0=0x13 --custom1=0x14 --id=0x0 --rev=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_21.dtbo --custom0=0x15 --custom1=0x15 --id=0x0 --rev=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_22.dtbo --custom0=0x16 --custom1=0x16 --id=0x0 --rev=0x0 \
+  ${OUT_DIR}/arch/arm64/boot/dts/samsung/exynos9820-d1_eur_open_23.dtbo --custom0=0x17 --custom1=0xff --id=0x0 --rev=0x0
 mv "dtbo.img" "${GORHANHEE}/dtbo.img"
 
 # Make tar_file for Odin
 cd ${GORHANHEE}
-
-tar -cvf ${MODEL}_Odin_ramdisk.tar boot.img dt.img dtbo.img
+tar -cvf ${MODEL}_SukiSU_Ultra_Odin.tar boot.img dt.img dtbo.img
 
 # Make zip_file for TWRP
 cd "${LOCATION}"
 cp -ar "$(pwd)/early_setting/META-INF" "${GORHANHEE}/META-INF"
 
 cd ${GORHANHEE}
-
-zip -r ${MODEL}_TWRP_ramdisk.zip META-INF boot.img dt.img dtbo.img
+zip -r ${MODEL}_SukiSU_Ultra_TWRP.zip META-INF boot.img dt.img dtbo.img
 
 rm -rf ${AIK_DIR}/split_img/boot.img-kernel
 rm -rf ${AIK_DIR}/split_img/boot.img-ramdisk.cpio.gz
 rm -rf ${AIK_DIR}/ramdisk-new.cpio.gz
+
+echo ""
+echo "=============================================="
+echo "✅ Build completed successfully!"
+echo "   Output files in gorhanhee/ directory:"
+echo "   - ${MODEL}_SukiSU_Ultra_Odin.tar (for Odin)"
+echo "   - ${MODEL}_SukiSU_Ultra_TWRP.zip (for TWRP)"
+echo "=============================================="
