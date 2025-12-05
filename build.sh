@@ -146,34 +146,35 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
     KPTOOLS="$KERNELPATCH_DIR/kptools"
     KPIMG="$KERNELPATCH_DIR/kpimg"
     
+    # kptools-linux is always from original KernelPatch (runs on x86_64 Linux host)
+    KPTOOLS_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}/kptools-linux"
+    
     if [ "$KERNELPATCH_VARIANT" = "sukisu" ]; then
-        # SukiSU Ultra KernelPatch variant
-        echo "KernelPatch integration enabled (SukiSU Ultra variant, version: $SUKISU_KP_VERSION)"
-        KP_BASE_URL="https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/${SUKISU_KP_VERSION}"
-        KPIMG_FILE="kpimg"
-        KPTOOLS_FILE="kptools"
+        # SukiSU Ultra KernelPatch variant - use SukiSU kpimg for Android
+        echo "KernelPatch integration enabled (SukiSU Ultra variant)"
+        echo "  kpimg: SukiSU v${SUKISU_KP_VERSION}"
+        echo "  kptools: Original v${ORIGINAL_KP_VERSION} (host tool)"
+        KPIMG_URL="https://github.com/SukiSU-Ultra/SukiSU_KernelPatch_patch/releases/download/${SUKISU_KP_VERSION}/kpimg"
     else
         # Original KernelPatch
         echo "KernelPatch integration enabled (Original variant, version: $ORIGINAL_KP_VERSION)"
-        KP_BASE_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}"
-        KPIMG_FILE="kpimg-android"
-        KPTOOLS_FILE="kptools-linux"
+        KPIMG_URL="https://github.com/bmax121/KernelPatch/releases/download/${ORIGINAL_KP_VERSION}/kpimg-android"
     fi
     
     # Download prebuilt kpimg if not exists
     if [ ! -f "$KPIMG" ]; then
         echo "Downloading KernelPatch kpimg..."
-        if ! curl -L -f -o "$KPIMG" "${KP_BASE_URL}/${KPIMG_FILE}"; then
+        if ! curl -L -f -o "$KPIMG" "$KPIMG_URL"; then
             echo "Error: Failed to download kpimg. Check internet connection."
             echo "Build will continue with original kernel (no root)."
             rm -f "$KPIMG"
         fi
     fi
     
-    # Download prebuilt kptools if not exists
+    # Download prebuilt kptools (Linux x86_64 version for host)
     if [ ! -f "$KPTOOLS" ]; then
-        echo "Downloading KernelPatch kptools..."
-        if ! curl -L -f -o "$KPTOOLS" "${KP_BASE_URL}/${KPTOOLS_FILE}"; then
+        echo "Downloading KernelPatch kptools (Linux x86_64)..."
+        if ! curl -L -f -o "$KPTOOLS" "$KPTOOLS_URL"; then
             echo "Error: Failed to download kptools. Check internet connection."
             echo "Build will continue with original kernel (no root)."
             rm -f "$KPTOOLS"
