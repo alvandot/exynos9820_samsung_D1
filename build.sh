@@ -164,7 +164,8 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
     if [ ! -f "$KPIMG" ]; then
         echo "Downloading KernelPatch kpimg..."
         if ! curl -L -f -o "$KPIMG" "${KP_BASE_URL}/${KPIMG_FILE}"; then
-            echo "Error: Failed to download kpimg"
+            echo "Error: Failed to download kpimg. Check internet connection."
+            echo "Build will continue with original kernel (no root)."
             rm -f "$KPIMG"
         fi
     fi
@@ -173,7 +174,8 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
     if [ ! -f "$KPTOOLS" ]; then
         echo "Downloading KernelPatch kptools..."
         if ! curl -L -f -o "$KPTOOLS" "${KP_BASE_URL}/${KPTOOLS_FILE}"; then
-            echo "Error: Failed to download kptools"
+            echo "Error: Failed to download kptools. Check internet connection."
+            echo "Build will continue with original kernel (no root)."
             rm -f "$KPTOOLS"
         else
             chmod +x "$KPTOOLS"
@@ -185,14 +187,17 @@ if [ "$KERNELPATCH_ENABLED" = "1" ]; then
         echo "Patching kernel with KernelPatch..."
         PATCHED_IMAGE="${OUT_DIR}/arch/arm64/boot/Image-kp"
         
-        "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"
-        
-        if [ -f "$PATCHED_IMAGE" ]; then
-            echo "Kernel patched successfully with KernelPatch!"
-            echo "Variant: $KERNELPATCH_VARIANT"
-            IMAGE="$PATCHED_IMAGE"
+        if "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"; then
+            if [ -f "$PATCHED_IMAGE" ]; then
+                echo "Kernel patched successfully with KernelPatch!"
+                echo "Variant: $KERNELPATCH_VARIANT"
+                IMAGE="$PATCHED_IMAGE"
+            else
+                echo "Warning: KernelPatch patching failed, using original kernel"
+            fi
         else
-            echo "Warning: KernelPatch patching failed, using original kernel"
+            echo "Error: KernelPatch tool execution failed"
+            echo "Using original kernel (no root)"
         fi
     else
         echo "Warning: KernelPatch tools not found, using original kernel"
