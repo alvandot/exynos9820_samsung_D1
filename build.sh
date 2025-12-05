@@ -1,49 +1,15 @@
 #!/bin/bash
 
+# This branch is dedicated to N970F (D1) only
 MODEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
 
 case "$MODEL" in
-    G970F )
-        DEVICE="beyond0lte"
-        ;;
-    G970N )
-        DEVICE="beyond0lteks"
-        ;;
-    G973F )
-        DEVICE="beyond1lte"
-        ;;        
-    G973N )
-        DEVICE="beyond1lteks"
-        ;;
-    G975F )
-        DEVICE="beyond2lte"
-        ;;        
-    G975N )
-        DEVICE="beyond2lteks"
-        ;;
-    G977B )
-        DEVICE="beyondx"
-        ;;         
-    G977N )
-        DEVICE="beyondxks"
-        ;;
     N970F )
         DEVICE="d1"
         ;;        
-    N971N )
-        DEVICE="d1xks"
-        ;;
-    N975F )
-        DEVICE="d2s"
-        ;;
-    N976B )
-        DEVICE="d2x"
-        ;;                     
-    N976N )
-        DEVICE="d2xks"
-        ;;        
     * )
-        echo "Check Your Model! EX)./build_kernel.sh G977N"
+        echo "This branch only supports N970F (Galaxy Note 10)"
+        echo "Usage: ./build.sh N970F"
         exit 1
         ;;
 esac
@@ -77,17 +43,9 @@ fi
 # End SukiSU Ultra Integration
 # ===============================================
 
-# tzdev
+# tzdev - N970F uses tzdev_B
 rm -rf "${LOCATION}/drivers/misc/tzdev"
-
-case "${MODEL}" in
-    G970F | G970N | G973F | G973N | G975F | G975N | G977B | G977N | N971N | N976N )
- 	cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_A" "${LOCATION}/drivers/misc/tzdev"
-        ;;
-    N970F | N975F | N976B )
- 	cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/tzdev"
-        ;;            
-esac
+cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/tzdev"
 
 # Compile Setting (OEM Option)
 export ARCH=arm64

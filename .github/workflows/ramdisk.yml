@@ -1,26 +1,8 @@
-name: Kernel Build (Ramdisk) 
+name: Kernel Build N970F (Ramdisk) 
 
 on:
   workflow_dispatch:
     inputs:
-      MODEL:
-        description: 'Choose Your Device'
-        required: true
-        type: choice
-        options:
-          - G970F
-          - G970N
-          - G973F
-          - G973N
-          - G975F
-          - G975N
-          - G977B
-          - G977N
-          - N970F
-          - N971N
-          - N975F
-          - N976B
-          - N976N
       KERNELPATCH_ENABLED:
         description: 'Enable KernelPatch for root (recommended for Non-GKI)'
         required: false
@@ -59,7 +41,7 @@ jobs:
 
     - name: 4. kernel build
       run: |
-        echo "Starting build for ${{ github.event.inputs.MODEL }}_Kernel File"
+        echo "Starting build for N970F (D1) Kernel"
         
         # KernelPatch (image-level patching - recommended for Non-GKI)
         if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
@@ -68,12 +50,12 @@ jobs:
           echo "KernelPatch integration is enabled (variant: $KERNELPATCH_VARIANT)"
         fi
         
-        ./build.sh "${{ github.event.inputs.MODEL }}"
+        ./build.sh N970F
         
     - name: 5. Upload Artifacts Kernel File
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ github.event.inputs.MODEL }}_Ramdisk
+        name: N970F_Ramdisk
         path: |
           gorhanhee/*.zip  
           gorhanhee/*.tar   
