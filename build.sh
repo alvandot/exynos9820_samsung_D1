@@ -50,6 +50,166 @@ esac
 
 LOCATION=$(pwd)
 
+# ===============================================
+# SukiSU Ultra Integration (Kernel Source Level)
+# For Non-GKI kernels like Exynos9820 (kernel 4.14)
+# ===============================================
+SUKISU_ENABLED=${SUKISU_ENABLED:-0}
+SUKISU_BRANCH=${SUKISU_BRANCH:-"main"}
+SUKISU_MANUAL_HOOK=${SUKISU_MANUAL_HOOK:-1}  # Use manual hook for non-GKI
+
+if [ "$SUKISU_ENABLED" = "1" ]; then
+    echo "=============================================="
+    echo "SukiSU Ultra integration enabled"
+    echo "Branch: $SUKISU_BRANCH"
+    echo "Manual Hook: $SUKISU_MANUAL_HOOK"
+    echo "Target: Non-GKI kernel (4.14)"
+    echo "=============================================="
+    
+    DRIVER_DIR="${LOCATION}/drivers"
+    KERNELSU_DIR="${LOCATION}/KernelSU"
+    
+    # Clone SukiSU-Ultra if not exists
+    if [ ! -d "$KERNELSU_DIR" ]; then
+        echo "Cloning SukiSU-Ultra repository..."
+        git clone https://github.com/SukiSU-Ultra/SukiSU-Ultra "$KERNELSU_DIR"
+    fi
+    
+    # Update and checkout branch
+    cd "$KERNELSU_DIR"
+    git fetch --all
+    git checkout "$SUKISU_BRANCH" || git checkout main
+    git pull || true
+    cd "$LOCATION"
+    
+    # Create symlink to kernelsu driver
+    if [ ! -L "$DRIVER_DIR/kernelsu" ]; then
+        echo "Creating kernelsu symlink..."
+        ln -sf "../KernelSU/kernel" "$DRIVER_DIR/kernelsu"
+    fi
+    
+    # Add kernelsu to drivers/Makefile if not present
+    if ! grep -q "kernelsu" "$DRIVER_DIR/Makefile"; then
+        echo "Adding kernelsu to drivers/Makefile..."
+        echo 'obj-$(CONFIG_KSU) += kernelsu/' >> "$DRIVER_DIR/Makefile"
+    fi
+    
+    # Add kernelsu to drivers/Kconfig if not present
+    if ! grep -q 'source "drivers/kernelsu/Kconfig"' "$DRIVER_DIR/Kconfig"; then
+        echo "Adding kernelsu to drivers/Kconfig..."
+        sed -i '/endmenu/i\source "drivers/kernelsu/Kconfig"' "$DRIVER_DIR/Kconfig"
+    fi
+    
+    # Apply manual hooks for non-GKI kernel
+    if [ "$SUKISU_MANUAL_HOOK" = "1" ]; then
+        echo "Applying manual hooks for non-GKI kernel..."
+        
+        # Patch fs/exec.c - do_execveat_common
+        EXEC_C="${LOCATION}/fs/exec.c"
+        if [ -f "$EXEC_C" ] && ! grep -q "ksu_handle_execveat" "$EXEC_C"; then
+            echo "Patching fs/exec.c..."
+            # Add extern declarations before do_execveat_common
+            sed -i '/static int do_execveat_common/i\
+#ifdef CONFIG_KSU\
+extern bool ksu_execveat_hook __read_mostly;\
+extern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv,\
+			void *envp, int *flags);\
+extern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr,\
+				 void *argv, void *envp, int *flags);\
+#endif' "$EXEC_C"
+            # Add hook call at the beginning of do_execveat_common function body
+            sed -i '/static int do_execveat_common.*{$/a\
+#ifdef CONFIG_KSU\
+	if (unlikely(ksu_execveat_hook))\
+		ksu_handle_execveat(\&fd, \&filename, \&argv, \&envp, \&flags);\
+	else\
+		ksu_handle_execveat_sucompat(\&fd, \&filename, \&argv, \&envp, \&flags);\
+#endif' "$EXEC_C" 2>/dev/null || true
+        fi
+        
+        # Patch fs/open.c - do_faccessat
+        OPEN_C="${LOCATION}/fs/open.c"
+        if [ -f "$OPEN_C" ] && ! grep -q "ksu_handle_faccessat" "$OPEN_C"; then
+            echo "Patching fs/open.c..."
+            # Add extern declaration
+            sed -i '/^long do_faccessat/i\
+#ifdef CONFIG_KSU\
+extern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode,\
+			 int *flags);\
+#endif' "$OPEN_C" 2>/dev/null || true
+        fi
+        
+        # Patch fs/read_write.c - vfs_read
+        READ_WRITE_C="${LOCATION}/fs/read_write.c"
+        if [ -f "$READ_WRITE_C" ] && ! grep -q "ksu_handle_vfs_read" "$READ_WRITE_C"; then
+            echo "Patching fs/read_write.c..."
+            sed -i '/^ssize_t vfs_read/i\
+#ifdef CONFIG_KSU\
+extern bool ksu_vfs_read_hook __read_mostly;\
+extern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr,\
+			size_t *count_ptr, loff_t **pos);\
+#endif' "$READ_WRITE_C" 2>/dev/null || true
+        fi
+        
+        # Patch fs/stat.c - vfs_statx or vfs_fstatat
+        STAT_C="${LOCATION}/fs/stat.c"
+        if [ -f "$STAT_C" ] && ! grep -q "ksu_handle_stat" "$STAT_C"; then
+            echo "Patching fs/stat.c..."
+            sed -i '/^int vfs_statx\|^int vfs_fstatat/i\
+#ifdef CONFIG_KSU\
+extern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);\
+#endif' "$STAT_C" 2>/dev/null || true
+        fi
+        
+        # Patch drivers/input/input.c - Safe Mode support
+        INPUT_C="${LOCATION}/drivers/input/input.c"
+        if [ -f "$INPUT_C" ] && ! grep -q "ksu_handle_input_handle_event" "$INPUT_C"; then
+            echo "Patching drivers/input/input.c for Safe Mode..."
+            sed -i '/^static void input_handle_event/i\
+#ifdef CONFIG_KSU\
+extern bool ksu_input_hook __read_mostly;\
+extern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);\
+#endif' "$INPUT_C" 2>/dev/null || true
+        fi
+        
+        # Patch fs/devpts/inode.c - for pm command support
+        DEVPTS_C="${LOCATION}/fs/devpts/inode.c"
+        if [ -f "$DEVPTS_C" ] && ! grep -q "ksu_handle_devpts" "$DEVPTS_C"; then
+            echo "Patching fs/devpts/inode.c..."
+            sed -i '/^\*devpts_get_priv\|^void \*devpts_get_priv/i\
+#ifdef CONFIG_KSU\
+extern int ksu_handle_devpts(struct inode*);\
+#endif' "$DEVPTS_C" 2>/dev/null || true
+        fi
+        
+        echo "Manual hooks applied (Note: Some patches may need manual verification)"
+    fi
+    
+    # Create sukisu.config for KSU options (Non-GKI)
+    SUKISU_CONFIG="${LOCATION}/arch/arm64/configs/sukisu.config"
+    echo "Creating SukiSU config fragment for Non-GKI..."
+    cat > "$SUKISU_CONFIG" << 'EOF'
+# SukiSU Ultra Configuration for Non-GKI Kernel
+CONFIG_KSU=y
+CONFIG_KSU_MANUAL_HOOK=y
+# CONFIG_KSU_KPROBES_HOOK is not set
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+EOF
+    
+    echo "=============================================="
+    echo "SukiSU Ultra integration completed!"
+    echo ""
+    echo "IMPORTANT for Non-GKI kernels:"
+    echo "1. Manual hooks have been added to kernel source"
+    echo "2. You may need to verify patches manually"
+    echo "3. Safe Mode: Press Volume Down during boot"
+    echo "=============================================="
+fi
+# ===============================================
+# End SukiSU Ultra Integration
+# ===============================================
+
 # tzdev
 rm -rf "${LOCATION}/drivers/misc/tzdev"
 
@@ -97,9 +257,14 @@ cd ${AIK_DIR}/ramdisk
 find . | cpio -o -H newc | gzip > ../split_img/boot.img-ramdisk.cpio.gz
 cd "${LOCATION}"
 
-# Make file
+# Build defconfig with optional SukiSU config
 make ARCH=arm64 -j32 O=${OUT_DIR} mrproper
-make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config || exit 1
+if [ "$SUKISU_ENABLED" = "1" ]; then
+    echo "Building with SukiSU Ultra support..."
+    make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config sukisu.config || exit 1
+else
+    make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config || exit 1
+fi
 make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"

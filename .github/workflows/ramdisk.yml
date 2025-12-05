@@ -21,8 +21,13 @@ on:
           - N975F
           - N976B
           - N976N
+      SUKISU_ENABLED:
+        description: 'Enable SukiSU Ultra (kernel-level root for Non-GKI)'
+        required: false
+        type: boolean
+        default: false
       KERNELPATCH_ENABLED:
-        description: 'Enable KernelPatch integration'
+        description: 'Enable KernelPatch (image-level patching)'
         required: false
         type: boolean
         default: false
@@ -60,11 +65,21 @@ jobs:
     - name: 4. kernel build
       run: |
         echo "Starting build for ${{ github.event.inputs.MODEL }}_Kernel File"
+        
+        # SukiSU Ultra (kernel-level integration for Non-GKI)
+        if [ "${{ github.event.inputs.SUKISU_ENABLED }}" = "true" ]; then
+          export SUKISU_ENABLED=1
+          export SUKISU_MANUAL_HOOK=1
+          echo "SukiSU Ultra integration is enabled (Non-GKI mode with manual hooks)"
+        fi
+        
+        # KernelPatch (image-level patching)
         if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
           export KERNELPATCH_ENABLED=1
           export KERNELPATCH_VARIANT="${{ github.event.inputs.KERNELPATCH_VARIANT }}"
           echo "KernelPatch integration is enabled (variant: $KERNELPATCH_VARIANT)"
         fi
+        
         ./build.sh "${{ github.event.inputs.MODEL }}"
         
     - name: 5. Upload Artifacts Kernel File
