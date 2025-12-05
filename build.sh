@@ -121,7 +121,13 @@ if [ -f "$KPTOOLS" ] && [ -f "$KPIMG" ]; then
     echo "Patching kernel with KernelPatch (SukiSU Ultra)..."
     PATCHED_IMAGE="${OUT_DIR}/arch/arm64/boot/Image-kp"
     
-    if "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -o "$PATCHED_IMAGE"; then
+    # Generate a random superkey for KernelPatch
+    # You can change this in SukiSU Manager app later
+    SUPERKEY=${SUPERKEY:-"sukisu_n970f"}
+    echo "Using superkey: $SUPERKEY"
+    echo "Note: You can change this in SukiSU Manager app after flashing"
+    
+    if "$KPTOOLS" -p -i "$IMAGE" -k "$KPIMG" -s "$SUPERKEY" -o "$PATCHED_IMAGE"; then
         if [ -f "$PATCHED_IMAGE" ]; then
             echo "✅ Kernel patched successfully with SukiSU Ultra!"
             IMAGE="$PATCHED_IMAGE"
