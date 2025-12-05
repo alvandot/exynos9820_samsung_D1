@@ -2,7 +2,7 @@
 
 # ===============================================
 # N970F (Galaxy Note 10) Kernel Build Script
-# with SukiSU Ultra Root (KernelPatch)
+# with SukiSU Ultra Root (KernelSU + KernelPatch)
 # ===============================================
 
 MODEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
@@ -23,6 +23,28 @@ LOCATION=$(pwd)
 # tzdev - N970F uses tzdev_B
 rm -rf "${LOCATION}/drivers/misc/tzdev"
 cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/tzdev"
+
+# ===============================================
+# KernelSU Integration - Source Level
+# Integrates KernelSU into kernel source code
+# ===============================================
+echo "=============================================="
+echo "🔓 KernelSU Integration (Source Level)"
+echo "=============================================="
+
+KERNELSU_VERSION="${KERNELSU_VERSION:-v0.9.5}"
+echo "Using KernelSU version: ${KERNELSU_VERSION}"
+
+# Run KernelSU setup script
+cd "${LOCATION}"
+curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${KERNELSU_VERSION}"
+
+if [ -d "${LOCATION}/KernelSU" ]; then
+    echo "✅ KernelSU integrated successfully!"
+else
+    echo "⚠️  KernelSU integration may have issues, continuing..."
+fi
+echo "=============================================="
 
 # Compile Setting (OEM Option)
 export ARCH=arm64
