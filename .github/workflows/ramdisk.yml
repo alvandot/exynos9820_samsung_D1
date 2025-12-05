@@ -21,6 +21,11 @@ on:
           - N975F
           - N976B
           - N976N
+      KERNELPATCH_ENABLED:
+        description: 'Enable KernelPatch integration'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -38,7 +43,7 @@ jobs:
           libncurses5-dev libncurses-dev cpio zip unzip \
           python3 curl rsync kmod libelf-dev \
           lz4 tar openssl python3-pip \
-          gcc clang
+          gcc clang gcc-aarch64-linux-gnu
         wget http://security.ubuntu.com/ubuntu/pool/universe/n/ncurses/libtinfo5_6.3-2ubuntu0.1_amd64.deb && sudo dpkg -i libtinfo5_6.3-2ubuntu0.1_amd64.deb   
 
     - name: 3. setting permission
@@ -47,7 +52,10 @@ jobs:
     - name: 4. kernel build
       run: |
         echo "Starting build for ${{ github.event.inputs.MODEL }}_Kernel File"
-    
+        if [ "${{ github.event.inputs.KERNELPATCH_ENABLED }}" = "true" ]; then
+          export KERNELPATCH_ENABLED=1
+          echo "KernelPatch integration is enabled"
+        fi
         ./build.sh "${{ github.event.inputs.MODEL }}"
         
     - name: 5. Upload Artifacts Kernel File
