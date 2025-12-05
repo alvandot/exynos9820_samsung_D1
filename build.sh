@@ -2,7 +2,7 @@
 
 # ===============================================
 # N970F (Galaxy Note 10) Kernel Build Script
-# with SukiSU Ultra Root (KernelSU + KernelPatch)
+# with SukiSU Ultra Root
 # ===============================================
 
 MODEL=$(echo "$1" | tr '[:lower:]' '[:upper:]')
@@ -25,24 +25,52 @@ rm -rf "${LOCATION}/drivers/misc/tzdev"
 cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/tzdev"
 
 # ===============================================
-# KernelSU Integration - Source Level
-# Integrates KernelSU into kernel source code
+# Step 1: KernelSU Integration (Source Level)
+# Base for SukiSU Ultra
 # ===============================================
 echo "=============================================="
-echo "🔓 KernelSU Integration (Source Level)"
+echo "🔓 Step 1: KernelSU Integration (Source Level)"
 echo "=============================================="
 
 KERNELSU_VERSION="${KERNELSU_VERSION:-v0.9.5}"
 echo "Using KernelSU version: ${KERNELSU_VERSION}"
 
-# Run KernelSU setup script
+# Run KernelSU setup script (base for SukiSU)
 cd "${LOCATION}"
 curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${KERNELSU_VERSION}"
 
 if [ -d "${LOCATION}/KernelSU" ]; then
-    echo "✅ KernelSU integrated successfully!"
+    echo "✅ KernelSU source integrated successfully!"
 else
     echo "⚠️  KernelSU integration may have issues, continuing..."
+fi
+echo "=============================================="
+
+# ===============================================
+# Step 2: SukiSU Ultra Patches (Non-GKI Support)
+# Applies SukiSU Ultra specific patches for Non-GKI kernels
+# ===============================================
+echo "=============================================="
+echo "🔓 Step 2: SukiSU Ultra Patches (Non-GKI)"
+echo "=============================================="
+
+# SukiSU Ultra uses the same KernelSU base but adds Non-GKI support
+# For Non-GKI kernel 4.14, we need to enable manual hooks
+if [ -d "${LOCATION}/KernelSU" ]; then
+    # Check if kernel version requires Non-GKI hooks
+    KERNEL_VERSION=$(make kernelversion 2>/dev/null | head -1)
+    echo "Kernel version: ${KERNEL_VERSION}"
+    
+    # Enable CONFIG_KSU in defconfig if not already present
+    DEFCONFIG="${LOCATION}/arch/arm64/configs/exynos9820-${DEVICE}_defconfig"
+    if ! grep -q "CONFIG_KSU=y" "$DEFCONFIG" 2>/dev/null; then
+        echo "Adding CONFIG_KSU=y to defconfig..."
+        echo "CONFIG_KSU=y" >> "$DEFCONFIG"
+    fi
+    
+    echo "✅ SukiSU Ultra Non-GKI support configured!"
+else
+    echo "⚠️  KernelSU directory not found, skipping SukiSU patches"
 fi
 echo "=============================================="
 
@@ -89,12 +117,12 @@ make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 
 # ===============================================
-# KernelPatch Integration - SukiSU Ultra (Default)
-# Always enabled for N970F builds
+# Step 3: KernelPatch Integration - SukiSU Ultra
+# Patches compiled kernel image for Non-GKI support
 # ===============================================
 echo "=============================================="
-echo "🔓 SukiSU Ultra Root Integration"
-echo "   Using KernelPatch for Non-GKI kernel"
+echo "🔓 Step 3: SukiSU Ultra KernelPatch"
+echo "   Patching kernel image for Non-GKI support"
 echo "=============================================="
 
 KERNELPATCH_DIR="${LOCATION}/KernelPatch"
@@ -167,7 +195,7 @@ else
 fi
 echo "=============================================="
 # ===============================================
-# End KernelPatch Integration
+# End Step 3: KernelPatch Integration
 # ===============================================
 
 # Make boot.img file
