@@ -86,12 +86,11 @@ if [ "$KSU" = "true" ]; then
 		fi
 	done
 	
-	# Fix __NR_clone3 for kernel < 5.3 - wrap in ifdef
+	# Fix __NR_clone3 for kernel < 5.3 - comment out clone3 syscall handling
 	for f in "${LOCATION}/KernelSU/kernel/syscall_hook_manager.c" "${LOCATION}/drivers/kernelsu/syscall_hook_manager.c"; do
 		if [ -f "$f" ]; then
-			sed -i 's/case __NR_clone3:/#ifdef __NR_clone3\n\tcase __NR_clone3:/g' "$f" 2>/dev/null || true
-			# Add endif after break for clone3 cases
-			sed -i '/case __NR_clone3:/,/break;/{s/break;/break;\n#endif/}' "$f" 2>/dev/null || true
+			# Comment out lines containing __NR_clone3
+			sed -i 's/\(.*__NR_clone3.*\)/\/\/ \1 \/\/ Disabled for kernel < 5.3/g' "$f" 2>/dev/null || true
 		fi
 	done
 	
