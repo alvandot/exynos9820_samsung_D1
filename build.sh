@@ -25,39 +25,39 @@ rm -rf "${LOCATION}/drivers/misc/tzdev"
 cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/tzdev"
 
 # ===============================================
-# Step 1: KernelSU Integration (Source Level)
-# Base for SukiSU Ultra
+# Step 1: SukiSU Ultra Integration (Source Level)
+# Uses SukiSU-Ultra's own setup script for Non-GKI support
+# https://github.com/SukiSU-Ultra/SukiSU-Ultra
 # ===============================================
 echo "=============================================="
-echo "🔓 Step 1: KernelSU Integration (Source Level)"
+echo "🔓 Step 1: SukiSU Ultra Integration (Source Level)"
 echo "=============================================="
 
-KERNELSU_VERSION="${KERNELSU_VERSION:-v0.9.5}"
-echo "Using KernelSU version: ${KERNELSU_VERSION}"
+SUKISU_VERSION="${SUKISU_VERSION:-v1.0.3}"
+echo "Using SukiSU Ultra version: ${SUKISU_VERSION}"
 
-# Run KernelSU setup script (base for SukiSU)
+# Run SukiSU Ultra setup script (with Non-GKI support)
 cd "${LOCATION}"
-curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s "${KERNELSU_VERSION}"
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s "${SUKISU_VERSION}"
 
 if [ -d "${LOCATION}/KernelSU" ]; then
-    echo "✅ KernelSU source integrated successfully!"
+    echo "✅ SukiSU Ultra source integrated successfully!"
 else
-    echo "⚠️  KernelSU integration may have issues, continuing..."
+    echo "⚠️  SukiSU Ultra integration may have issues, continuing..."
 fi
 echo "=============================================="
 
 # ===============================================
-# Step 2: SukiSU Ultra Patches (Non-GKI Support)
-# Applies SukiSU Ultra specific patches for Non-GKI kernels
+# Step 2: SukiSU Ultra Non-GKI Configuration
+# Configure kernel for Non-GKI kernel 4.14
 # ===============================================
 echo "=============================================="
-echo "🔓 Step 2: SukiSU Ultra Patches (Non-GKI)"
+echo "🔓 Step 2: SukiSU Ultra Non-GKI Configuration"
 echo "=============================================="
 
-# SukiSU Ultra uses the same KernelSU base but adds Non-GKI support
-# For Non-GKI kernel 4.14, we need to enable manual hooks
+# SukiSU Ultra provides Non-GKI support out of the box
 if [ -d "${LOCATION}/KernelSU" ]; then
-    # Check if kernel version requires Non-GKI hooks
+    # Check kernel version
     KERNEL_VERSION=$(make kernelversion 2>/dev/null | head -1)
     echo "Kernel version: ${KERNEL_VERSION}"
     
