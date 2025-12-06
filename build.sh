@@ -82,7 +82,7 @@ if [ -d "${LOCATION}/KernelSU" ]; then
     echo "    ✅ MODULE_IMPORT_NS commented out"
     
     # Fix 2: Replace TWA_RESUME with 0 (TWA_RESUME was added in Linux 5.1)
-    echo "    [2/2] Fixing TWA_RESUME..."
+    echo "    [2/3] Fixing TWA_RESUME..."
     for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
         if grep -q "TWA_RESUME" "$KSU_FILE"; then
             echo "      Patching: $(basename $KSU_FILE)"
@@ -92,6 +92,43 @@ if [ -d "${LOCATION}/KernelSU" ]; then
         fi
     done
     echo "    ✅ TWA_RESUME fixed for Linux 4.14"
+    
+    # Fix 3: Fix seccomp.filter_count (doesn't exist in 4.14)
+    # In Linux 4.14, seccomp structure doesn't have filter_count member
+    echo "    [3/3] Fixing seccomp.filter_count..."
+    for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
+        if grep -q "seccomp.filter_count\|filter_count" "$KSU_FILE"; then
+            echo "      Patching: $(basename $KSU_FILE)"
+            # Comment out the seccomp.filter_count line as it doesn't exist in 4.14
+            # The seccomp structure in 4.14 is simpler and doesn't need this reset
+            sed -i 's/atomic_set(&current->seccomp.filter_count, 0);/\/\/ atomic_set(\&current->seccomp.filter_count, 0); \/\/ Not available in Linux 4.14/g' "$KSU_FILE"
+            # Also try alternative patterns
+            sed -i 's/current->seccomp.filter_count/0 \/\* filter_count not in 4.14 \*\//g' "$KSU_FILE"
+        fi
+    done
+    echo "    ✅ seccomp.filter_count fixed for Linux 4.14"
+    
+    # Fix 4: Fix strncpy_from_user_nofault (not available in 4.14)
+    echo "    [4/4] Fixing strncpy_from_user_nofault..."
+    for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
+        if grep -q "strncpy_from_user_nofault" "$KSU_FILE"; then
+            echo "      Patching: $(basename $KSU_FILE)"
+            # In Linux 4.14, use strncpy_from_unsafe_user instead (if available) or strncpy_from_user
+            sed -i 's/strncpy_from_user_nofault/strncpy_from_unsafe/g' "$KSU_FILE"
+        fi
+    done
+    echo "    ✅ strncpy_from_user_nofault fixed for Linux 4.14"
+    
+    # Fix 5: Fix copy_from_user_nofault (not available in 4.14)
+    echo "    [5/5] Fixing copy_from_user_nofault..."
+    for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
+        if grep -q "copy_from_user_nofault" "$KSU_FILE"; then
+            echo "      Patching: $(basename $KSU_FILE)"
+            # In older kernels, use probe_kernel_read instead
+            sed -i 's/copy_from_user_nofault/probe_kernel_read/g' "$KSU_FILE"
+        fi
+    done
+    echo "    ✅ copy_from_user_nofault fixed for Linux 4.14"
     
     echo "✅ SukiSU Ultra source integrated successfully!"
 else
