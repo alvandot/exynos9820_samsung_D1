@@ -140,6 +140,20 @@ if [ "$KSU" = "true" ]; then
 			sed -i '/\.fadvise\s*=/d' "$f" 2>/dev/null || true
 			# For .mmap_supported_flags = xxx, - delete the line
 			sed -i '/\.mmap_supported_flags\s*=/d' "$f" 2>/dev/null || true
+			
+			# Also need to patch function implementations that use these fields
+			# For iopoll function - replace with return -EOPNOTSUPP (or 0)
+			# The iopoll function if it calls orig->f_op->iopoll
+			sed -i 's/if\s*(orig->f_op->iopoll)/if (0 \&\& orig->f_op)/g' "$f" 2>/dev/null || true
+			sed -i 's/orig->f_op->iopoll/NULL/g' "$f" 2>/dev/null || true
+			
+			# For remap_file_range function
+			sed -i 's/if\s*(orig->f_op->remap_file_range)/if (0 \&\& orig->f_op)/g' "$f" 2>/dev/null || true
+			sed -i 's/orig->f_op->remap_file_range/NULL/g' "$f" 2>/dev/null || true
+			
+			# For fadvise function
+			sed -i 's/if\s*(orig->f_op->fadvise)/if (0 \&\& orig->f_op)/g' "$f" 2>/dev/null || true
+			sed -i 's/orig->f_op->fadvise/NULL/g' "$f" 2>/dev/null || true
 		fi
 	done
 	
