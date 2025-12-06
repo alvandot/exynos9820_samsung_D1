@@ -101,6 +101,14 @@ if [ "$KSU" = "true" ]; then
 		fi
 	done
 	
+	# Fix handle_inode_event for kernel < 5.1 - use handle_event instead
+	# The handle_inode_event field was added in kernel 5.1
+	for f in "${LOCATION}/KernelSU/kernel/pkg_observer.c" "${LOCATION}/drivers/kernelsu/pkg_observer.c"; do
+		if [ -f "$f" ]; then
+			sed -i 's/\.handle_inode_event/.handle_event/g' "$f" 2>/dev/null || true
+		fi
+	done
+	
 	echo "KernelSU compatibility patches applied."
 fi
 
