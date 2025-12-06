@@ -73,9 +73,9 @@ class ELF:
         self.__sections = OrderedDict()
         self.__symbols = OrderedDict()
         self.__relocs = list()
-        self.__re_hexdecimal = "\s*[0-9A-Fa-f]+\s*"
-        self.__re_sec_name = "\s*[._a-zA-Z]+\s*"
-        self.__re_type = "\s*[A-Z]+\s*"
+        self.__re_hexdecimal = r"\s*[0-9A-Fa-f]+\s*"
+        self.__re_sec_name = r"\s*[._a-zA-Z]+\s*"
+        self.__re_type = r"\s*[A-Z]+\s*"
 
     def __readelf_raw(self, options):
         """
@@ -110,7 +110,7 @@ class ELF:
         """
         if len(self.__sections) == 0:
             sec_header = self.__readelf_raw(["-SW",  self.__elf_file]).strip()
-            secs = re.compile("^.*\[.*\](" + self.__re_sec_name + self.__re_type + self.__re_hexdecimal +
+            secs = re.compile(r"^.*\[.*\](" + self.__re_sec_name + self.__re_type + self.__re_hexdecimal +
                               self.__re_hexdecimal + self.__re_hexdecimal + ")", re.MULTILINE)
             found = secs.findall(sec_header)
             for line in found:
