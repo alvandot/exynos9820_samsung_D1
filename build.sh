@@ -120,6 +120,7 @@ if [ "$KSU" = "true" ]; then
 	done
 	
 	# Fix file_wrapper.c for kernel < 4.16/4.17
+	# For struct file_operations assignments, we need to carefully remove unsupported fields
 	# - iopoll was added in 4.16
 	# - __poll_t was added in 4.16, use unsigned int instead
 	# - remap_file_range was added in 4.17 (replaces clone_file_range)
@@ -130,14 +131,15 @@ if [ "$KSU" = "true" ]; then
 			echo "Patching file_wrapper.c for kernel 4.14 compatibility..."
 			# Replace __poll_t with unsigned int
 			sed -i 's/__poll_t/unsigned int/g' "$f" 2>/dev/null || true
-			# Comment out lines with iopoll (field doesn't exist)
-			sed -i 's/\(.*iopoll.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.16/g' "$f" 2>/dev/null || true
-			# Comment out lines with remap_file_range (field doesn't exist)
-			sed -i 's/\(.*remap_file_range.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.17/g' "$f" 2>/dev/null || true
-			# Comment out lines with fadvise (field doesn't exist)
-			sed -i 's/\(.*fadvise.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.19/g' "$f" 2>/dev/null || true
-			# Comment out lines with mmap_supported_flags (field doesn't exist)
-			sed -i 's/\(.*mmap_supported_flags.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.17/g' "$f" 2>/dev/null || true
+			# Remove struct field assignments for unsupported fields (remove the whole line cleanly)
+			# For .iopoll = xxx, - delete the line
+			sed -i '/\.iopoll\s*=/d' "$f" 2>/dev/null || true
+			# For .remap_file_range = xxx, - delete the line
+			sed -i '/\.remap_file_range\s*=/d' "$f" 2>/dev/null || true
+			# For .fadvise = xxx, - delete the line
+			sed -i '/\.fadvise\s*=/d' "$f" 2>/dev/null || true
+			# For .mmap_supported_flags = xxx, - delete the line
+			sed -i '/\.mmap_supported_flags\s*=/d' "$f" 2>/dev/null || true
 		fi
 	done
 	
