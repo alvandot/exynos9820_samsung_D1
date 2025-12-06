@@ -60,12 +60,17 @@ if [ "$KSU" = "true" ]; then
 	elif [ "${PICK_KSU}" = "suki" ]; then
     	curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main  || exit 1
 	fi
-	# Fix MODULE_IMPORT_NS for kernel < 5.4 (e.g., 4.14)
+	
+	# Apply compatibility fixes for kernel 4.14
+	echo "Applying KernelSU compatibility patches for kernel 4.14..."
+	
+	# Fix MODULE_IMPORT_NS for kernel < 5.4
 	for f in "${LOCATION}/KernelSU/kernel/ksu.c" "${LOCATION}/drivers/kernelsu/ksu.c"; do
 		if [ -f "$f" ]; then
 			sed -i 's/^#else$/#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)/' "$f" 2>/dev/null || true
 		fi
 	done
+	
 	# Fix TWA_RESUME for kernel < 5.7 - use true instead
 	for f in "${LOCATION}/KernelSU/kernel/allowlist.c" "${LOCATION}/drivers/kernelsu/allowlist.c" \
 	         "${LOCATION}/KernelSU/kernel/dynamic_manager.c" "${LOCATION}/drivers/kernelsu/dynamic_manager.c"; do
@@ -73,6 +78,31 @@ if [ "$KSU" = "true" ]; then
 			sed -i 's/TWA_RESUME/true/g' "$f" 2>/dev/null || true
 		fi
 	done
+	
+	# Fix pgtable.h include for kernel < 5.10
+	for f in "${LOCATION}/KernelSU/kernel/sucompat.c" "${LOCATION}/drivers/kernelsu/sucompat.c"; do
+		if [ -f "$f" ]; then
+			sed -i 's|#include <linux/pgtable.h>|#include <asm/pgtable.h>|g' "$f" 2>/dev/null || true
+		fi
+	done
+	
+	# Fix __NR_clone3 for kernel < 5.3 - wrap in ifdef
+	for f in "${LOCATION}/KernelSU/kernel/syscall_hook_manager.c" "${LOCATION}/drivers/kernelsu/syscall_hook_manager.c"; do
+		if [ -f "$f" ]; then
+			sed -i 's/case __NR_clone3:/#ifdef __NR_clone3\n\tcase __NR_clone3:/g' "$f" 2>/dev/null || true
+			# Add endif after break for clone3 cases
+			sed -i '/case __NR_clone3:/,/break;/{s/break;/break;\n#endif/}' "$f" 2>/dev/null || true
+		fi
+	done
+	
+	# Fix strncpy_from_user_nofault for kernel < 5.8
+	for f in "${LOCATION}/KernelSU/kernel/"*.c "${LOCATION}/drivers/kernelsu/"*.c; do
+		if [ -f "$f" ]; then
+			sed -i 's/strncpy_from_user_nofault/strncpy_from_user/g' "$f" 2>/dev/null || true
+		fi
+	done
+	
+	echo "KernelSU compatibility patches applied."
 fi
 
 # tzdev for N970F
