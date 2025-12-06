@@ -119,6 +119,28 @@ if [ "$KSU" = "true" ]; then
 		fi
 	done
 	
+	# Fix file_wrapper.c for kernel < 4.16/4.17
+	# - iopoll was added in 4.16
+	# - __poll_t was added in 4.16, use unsigned int instead
+	# - remap_file_range was added in 4.17 (replaces clone_file_range)
+	# - fadvise was added in 4.19
+	# - mmap_supported_flags was added in 4.17
+	for f in "${LOCATION}/KernelSU/kernel/file_wrapper.c" "${LOCATION}/drivers/kernelsu/file_wrapper.c"; do
+		if [ -f "$f" ]; then
+			echo "Patching file_wrapper.c for kernel 4.14 compatibility..."
+			# Replace __poll_t with unsigned int
+			sed -i 's/__poll_t/unsigned int/g' "$f" 2>/dev/null || true
+			# Comment out lines with iopoll (field doesn't exist)
+			sed -i 's/\(.*iopoll.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.16/g' "$f" 2>/dev/null || true
+			# Comment out lines with remap_file_range (field doesn't exist)
+			sed -i 's/\(.*remap_file_range.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.17/g' "$f" 2>/dev/null || true
+			# Comment out lines with fadvise (field doesn't exist)
+			sed -i 's/\(.*fadvise.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.19/g' "$f" 2>/dev/null || true
+			# Comment out lines with mmap_supported_flags (field doesn't exist)
+			sed -i 's/\(.*mmap_supported_flags.*\)/\/\/ \1 \/\/ Disabled for kernel < 4.17/g' "$f" 2>/dev/null || true
+		fi
+	done
+	
 	echo "KernelSU compatibility patches applied."
 fi
 
