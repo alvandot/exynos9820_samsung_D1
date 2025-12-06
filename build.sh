@@ -72,8 +72,8 @@ if [ "$KSU" = "true" ]; then
 	done
 	
 	# Fix TWA_RESUME for kernel < 5.7 - use true instead
-	for f in "${LOCATION}/KernelSU/kernel/allowlist.c" "${LOCATION}/drivers/kernelsu/allowlist.c" \
-	         "${LOCATION}/KernelSU/kernel/dynamic_manager.c" "${LOCATION}/drivers/kernelsu/dynamic_manager.c"; do
+	# TWA_RESUME is not available in kernel < 5.7, replace with true (boolean parameter)
+	for f in "${LOCATION}/KernelSU/kernel/"*.c "${LOCATION}/drivers/kernelsu/"*.c; do
 		if [ -f "$f" ]; then
 			sed -i 's/TWA_RESUME/true/g' "$f" 2>/dev/null || true
 		fi
