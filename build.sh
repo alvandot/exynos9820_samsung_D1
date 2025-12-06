@@ -63,6 +63,32 @@ if [ -d "${LOCATION}/KernelSU" ]; then
         sed -i '/endmenu/i source "drivers/kernelsu/Kconfig"' "${LOCATION}/drivers/Kconfig"
     fi
     
+    # =============================================
+    # Fix MODULE_IMPORT_NS() for Linux 4.14
+    # This macro was introduced in Linux 5.4+
+    # Best practice: Use conditional compilation
+    # =============================================
+    echo "  Patching KernelSU for Linux 4.14 compatibility..."
+    
+    # Find all .c files with MODULE_IMPORT_NS and patch them
+    for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
+        if grep -q "MODULE_IMPORT_NS" "$KSU_FILE" && ! grep -q "LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)" "$KSU_FILE"; then
+            echo "    Patching: $(basename $KSU_FILE)"
+            
+            # Ensure linux/version.h is included at the top
+            if ! grep -q "#include <linux/version.h>" "$KSU_FILE"; then
+                # Add after the first #include line
+                sed -i '0,/#include/{s/#include/#include <linux\/version.h>\n&/}' "$KSU_FILE"
+            fi
+            
+            # Replace MODULE_IMPORT_NS with conditional version
+            # This is the best practice approach - wrap with version check
+            sed -i 's/^\(MODULE_IMPORT_NS(.*)\);$/#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)\n\1;\n#endif/' "$KSU_FILE"
+        fi
+    done
+    
+    echo "  ✅ MODULE_IMPORT_NS patched for Linux 4.14 compatibility"
+    
     echo "✅ SukiSU Ultra source integrated successfully!"
 else
     echo "❌ Failed to clone SukiSU-Ultra!"
