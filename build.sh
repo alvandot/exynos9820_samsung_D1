@@ -147,18 +147,27 @@ find . | cpio -o -H newc | gzip > ../split_img/boot.img-ramdisk.cpio.gz
 cd "${LOCATION}"
 
 # Make file
-make ARCH=arm64 -j32 O=${OUT_DIR} mrproper
+make ARCH=arm64 -j$(nproc) O=${OUT_DIR} mrproper
 
 case "${KSU}" in
     true )
-        make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config ksu.config || exit 1
+        make ARCH=arm64 -j$(nproc) O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config ksu.config || exit 1
         ;;
     false )
-        make ARCH=arm64 -j32 O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config not_ksu.config || exit 1
+        make ARCH=arm64 -j$(nproc) O=${OUT_DIR} exynos9820-${DEVICE}_defconfig gorhanhee.config not_ksu.config || exit 1
         ;;
 esac
 
-make ARCH=arm64 -j32 O=${OUT_DIR} || exit 1
+# Build with verbose output to see errors clearly
+make ARCH=arm64 -j$(nproc) O=${OUT_DIR} 2>&1 | tee build.log
+if [ ${PIPESTATUS[0]} -ne 0 ]; then
+    echo "Build failed! Last 100 lines of build.log:"
+    tail -100 build.log
+    echo ""
+    echo "Searching for errors in build.log:"
+    grep -i "error:" build.log | tail -50
+    exit 1
+fi
 
 IMAGE="$(pwd)/out/arch/arm64/boot/Image"
 
