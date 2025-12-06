@@ -1,0 +1,2 @@
+kernel/drivers/video/fbdev/exynos/dpu20/panels/s6e3ha9_mipi_lcd.ko
+kernel/drivers/video/fbdev/exynos/dpu20/panels/s6e3ha9_lcd_ctrl.ko

@@ -1,0 +1,1 @@
+cmd_fs/exportfs/exportfs.o :=  rm -f fs/exportfs/exportfs.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD fs/exportfs/exportfs.o fs/exportfs/expfs.o 

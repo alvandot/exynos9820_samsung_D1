@@ -1,0 +1,1 @@
+cmd_lib/lzo/built-in.o :=   rm -f lib/lzo/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD lib/lzo/built-in.o lib/lzo/lzo_compress.o lib/lzo/lzo_decompress.o 

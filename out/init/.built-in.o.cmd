@@ -1,0 +1,1 @@
+cmd_init/built-in.o :=   rm -f init/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD init/built-in.o init/main.o init/version.o init/mounts.o init/noinitramfs.o init/initramfs.o init/calibrate.o init/sar_ramdisk/built-in.o init/init_task.o 

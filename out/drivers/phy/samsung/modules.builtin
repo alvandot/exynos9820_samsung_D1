@@ -1,0 +1,7 @@
+kernel/drivers/phy/samsung/phy-exynos-mipi.ko
+kernel/drivers/phy/samsung/phy-exynos5-usbdrd.ko
+kernel/drivers/phy/samsung/phy-exynos-debugfs.ko
+kernel/drivers/phy/samsung/phy-exynos-dp-debugfs.ko
+kernel/drivers/phy/samsung/phy-exynos-usbdrd.ko
+kernel/drivers/phy/samsung/phy-exynos-debugfs.ko
+kernel/drivers/phy/samsung/phy-exynos-usbdp-gen2.ko

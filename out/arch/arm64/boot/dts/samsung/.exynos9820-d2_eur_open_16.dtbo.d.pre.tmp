@@ -1,0 +1,2 @@
+arch/arm64/boot/dts/samsung/.exynos9820-d2_eur_open_16.dtbo.dts.tmp: \
+  ../arch/arm64/boot/dts/samsung/exynos9820-d2_eur_open_16.dts

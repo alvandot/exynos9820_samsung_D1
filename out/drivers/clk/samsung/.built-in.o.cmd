@@ -1,0 +1,1 @@
+cmd_drivers/clk/samsung/built-in.o :=   rm -f drivers/clk/samsung/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/clk/samsung/built-in.o drivers/clk/samsung/clk-exynos-audss.o drivers/clk/samsung/composite.o drivers/clk/samsung/clk-exynos9820.o drivers/clk/samsung/clk-exynos-clkout.o 

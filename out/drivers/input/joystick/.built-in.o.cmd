@@ -1,0 +1,1 @@
+cmd_drivers/input/joystick/built-in.o :=   rm -f drivers/input/joystick/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/input/joystick/built-in.o drivers/input/joystick/xpad.o 

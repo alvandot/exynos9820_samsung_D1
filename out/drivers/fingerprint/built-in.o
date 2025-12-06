@@ -1,0 +1,11 @@
+!<thin>
+//                                              78        `
+fingerprint_sysfs.o/
+qbt2000_common.o/
+qbt2000_platform.o/
+qbt2000_spidev.o/
+
+/0              0           0     0     644     131032    `
+/21             0           0     0     644     316536    `
+/39             0           0     0     644     156704    `
+/59             0           0     0     644     154432    `

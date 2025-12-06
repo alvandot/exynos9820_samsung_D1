@@ -1,0 +1,6 @@
+kernel/drivers/input/keyboard/atkbd.ko
+kernel/drivers/input/keyboard/gpio_keys.ko
+kernel/drivers/input/keyboard/samsung-keypad.ko
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_sidekey.ko
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_fwu.ko
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_functions.ko

@@ -1,0 +1,1 @@
+cmd_sound/soc/samsung/snd-soc-s3c-dma.o :=  rm -f sound/soc/samsung/snd-soc-s3c-dma.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD sound/soc/samsung/snd-soc-s3c-dma.o sound/soc/samsung/dmaengine.o 

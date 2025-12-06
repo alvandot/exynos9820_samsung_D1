@@ -1,0 +1,7 @@
+kernel/drivers/battery_v2/sec_battery.ko
+kernel/drivers/battery_v2/sec_battery_sysfs.ko
+kernel/drivers/battery_v2/sec_battery_dt.ko
+kernel/drivers/battery_v2/max77705_fuelgauge.ko
+kernel/drivers/battery_v2/max77705_charger.ko
+kernel/drivers/battery_v2/mfc_charger.ko
+kernel/drivers/battery_v2/pca9468_charger.ko

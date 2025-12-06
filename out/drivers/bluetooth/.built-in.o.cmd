@@ -1,0 +1,1 @@
+cmd_drivers/bluetooth/built-in.o :=   rm -f drivers/bluetooth/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/bluetooth/built-in.o drivers/bluetooth/bcm43xx.o 

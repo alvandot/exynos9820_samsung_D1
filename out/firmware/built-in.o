@@ -1,0 +1,39 @@
+!<thin>
+//                                              568       `
+npu/NPU.bin.gen.o/
+tsp_sec/y771_d1.bin.gen.o/
+tsp_sec/y771_d2.bin.gen.o/
+tsp_sec/y771_d1_bringup.bin.gen.o/
+tsp_sec/y771_davinci_bringup.bin.gen.o/
+tsp_sec/y771_davinci_bringup2nd.bin.gen.o/
+epen/w9020_d2.fw.gen.o/
+epen/w9020_d1.fw.gen.o/
+epen/w9020_d1_bringup.fw.gen.o/
+key_stm/fsr1ad04_davinci.fw.gen.o/
+key_stm/fsr1ad04_d2_dv2.fw.gen.o/
+key_stm/fsr1ad04_d1.fw.gen.o/
+key_stm/fsr1ad04_d2.fw.gen.o/
+key_stm/fsr1ad04_davinci_dv1.fw.gen.o/
+key_stm/fsr1ad04_d1_dv1.fw.gen.o/
+key_stm/fsr1ad04_d1_dv2.fw.gen.o/
+mfc/mfc_fw_flash.bin.gen.o/
+mfc/mfc_fw_flash_lsi.bin.gen.o/
+
+/0              0           0     0     644     476664    `
+/19             0           0     0     644     203680    `
+/46             0           0     0     644     203288    `
+/73             0           0     0     644     188776    `
+/108            0           0     0     644     190784    `
+/148            0           0     0     644     190792    `
+/191            0           0     0     644     148808    `
+/215            0           0     0     644     148808    `
+/239            0           0     0     644     148832    `
+/271            0           0     0     644     26536     `
+/306            0           0     0     644     34968     `
+/340            0           0     0     644     28528     `
+/370            0           0     0     644     29432     `
+/400            0           0     0     644     34832     `
+/439            0           0     0     644     28440     `
+/473            0           0     0     644     28544     `
+/507            0           0     0     644     17720     `
+/535            0           0     0     644     25416     `

@@ -1,0 +1,92 @@
+!<thin>
+//                                              922       `
+input.o/
+input-compat.o/
+input-mt.o/
+ff-core.o/
+sec_cmd.o/
+sec_tclm_v2.o/
+ff-memless.o/
+matrix-keymap.o/
+input-leds.o/
+evdev.o/
+input_booster.o/
+input_booster_lsi.o/
+keyboard/atkbd.o/
+keyboard/gpio_keys.o/
+keyboard/samsung-keypad.o/
+keyboard/stm/fsr1ad04/stm_fsr_sidekey.o/
+keyboard/stm/fsr1ad04/stm_fsr_fwu.o/
+keyboard/stm/fsr1ad04/stm_fsr_functions.o/
+joystick/xpad.o/
+tablet/acecad.o/
+tablet/aiptek.o/
+tablet/gtco.o/
+tablet/hanwang.o/
+tablet/kbtab.o/
+touchscreen/of_touchscreen.o/
+touchscreen/sec_ts/y771_d/sec_ts.o/
+touchscreen/sec_ts/y771_d/sec_ts_fw.o/
+touchscreen/sec_ts/y771_d/sec_ts_fn.o/
+touchscreen/sec_ts/y771_d/sec_ts_ioctl.o/
+misc/gpio_event.o/
+misc/gpio_matrix.o/
+misc/gpio_input.o/
+misc/gpio_output.o/
+misc/gpio_axis.o/
+misc/keychord.o/
+misc/uinput.o/
+keyreset.o/
+keycombo.o/
+sec_tsp_dumpkey.o/
+hall.o/
+certify_hall.o/
+wacom/wacom_i2c.o/
+wacom/wacom_i2c_sec.o/
+wacom/wacom_i2c_elec.o/
+wacom/w9020_flash.o/
+/0              0           0     0     644     422512    `
+/9              0           0     0     644     114944    `
+/25             0           0     0     644     157768    `
+/37             0           0     0     644     150912    `
+/48             0           0     0     644     177056    `
+/59             0           0     0     644     187800    `
+/74             0           0     0     644     163528    `
+/88            /0           0     0     644     146056    `
+/105            0           0     0     644     146704    `
+/119            0           0     0     644     356304    `
+/128           /0           0     0     644     269000    `
+/145            0           0     0     644     19472     `
+/166            0           0     0     644     254232    `
+/184            0           0     0     644     246960    `
+/206            0           0     0     644     201144    `
+/233            0           0     0     644     371952    `
+/274            0           0     0     644     260736    `
+/311            0           0     0     644     354344    `
+/354            0           0     0     644     271840    `
+/371            0           0     0     644     175968    `
+/388            0           0     0     644     291184    `
+/405            0           0     0     644     188664    `
+/420            0           0     0     644     189192    `
+/438            0           0     0     644     171792    `
+/454            0           0     0     644     143384    `
+/484            0           0     0     644     690696    `
+/520            0           0     0     644     318568    `
+/559            0           0     0     644     970208    `
+/598            0           0     0     644     227792    `
+/640            0           0     0     644     149032    `
+/659            0           0     0     644     167512    `
+/679            0           0     0     644     159336    `
+/698            0           0     0     644     140048    `
+/718            0           0     0     644     146776    `
+/736            0           0     0     644     176000    `
+/753            0           0     0     644     249864    `
+/768            0           0     0     644     183280    `
+/780            0           0     0     644     157824    `
+/792            0           0     0     644     18088     `
+/811            0           0     0     644     186352    `
+/819            0           0     0     644     185968    `
+/835            0           0     0     644     617840    `
+/854           /0           0     0     644     485064    `
+/877            0           0     0     644     214448    `
+/901            0           0     0     644     221192    `

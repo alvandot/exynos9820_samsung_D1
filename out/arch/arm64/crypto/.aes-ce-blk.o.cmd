@@ -1,0 +1,1 @@
+cmd_arch/arm64/crypto/aes-ce-blk.o :=  rm -f arch/arm64/crypto/aes-ce-blk.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD arch/arm64/crypto/aes-ce-blk.o arch/arm64/crypto/aes-glue-ce.o arch/arm64/crypto/aes-ce.o 

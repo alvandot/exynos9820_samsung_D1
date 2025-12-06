@@ -1,0 +1,1 @@
+cmd_drivers/hid/wacom.o :=  rm -f drivers/hid/wacom.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/hid/wacom.o drivers/hid/wacom_wac.o drivers/hid/wacom_sys.o 

@@ -1,0 +1,1 @@
+cmd_net/netfilter/nf_conntrack_h323.o :=  rm -f net/netfilter/nf_conntrack_h323.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD net/netfilter/nf_conntrack_h323.o net/netfilter/nf_conntrack_h323_main.o net/netfilter/nf_conntrack_h323_asn1.o 

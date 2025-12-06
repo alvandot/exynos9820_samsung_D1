@@ -1,0 +1,1 @@
+cmd_drivers/input/keyboard/built-in.o :=   rm -f drivers/input/keyboard/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/input/keyboard/built-in.o drivers/input/keyboard/atkbd.o drivers/input/keyboard/gpio_keys.o drivers/input/keyboard/samsung-keypad.o drivers/input/keyboard/stm/fsr1ad04/built-in.o 

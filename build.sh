@@ -94,7 +94,20 @@ if [ "$KSU" = "true" ]; then
     	curl -LSs "https://raw.githubusercontent.com/GoRhanHee/KernelSU-Next/next-susfs-experimental/kernel/setup.sh" | bash - || exit 1
 	elif [ "${PICK_KSU}" = "suki" ]; then
     	curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-main  || exit 1
-	fi	
+	fi
+	# Fix MODULE_IMPORT_NS for kernel < 5.4 (e.g., 4.14)
+	for f in "${LOCATION}/KernelSU/kernel/ksu.c" "${LOCATION}/drivers/kernelsu/ksu.c"; do
+		if [ -f "$f" ]; then
+			sed -i 's/^#else$/#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)/' "$f" 2>/dev/null || true
+		fi
+	done
+	# Fix TWA_RESUME for kernel < 5.7 - use true instead
+	for f in "${LOCATION}/KernelSU/kernel/allowlist.c" "${LOCATION}/drivers/kernelsu/allowlist.c" \
+	         "${LOCATION}/KernelSU/kernel/dynamic_manager.c" "${LOCATION}/drivers/kernelsu/dynamic_manager.c"; do
+		if [ -f "$f" ]; then
+			sed -i 's/TWA_RESUME/true/g' "$f" 2>/dev/null || true
+		fi
+	done
 fi
 
 # tzdev

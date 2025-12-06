@@ -1,0 +1,23 @@
+!<thin>
+//                                              178       `
+irqchip.o/
+exynos-combiner.o/
+irq-madera.o/
+irq-gic.o/
+irq-gic-common.o/
+irq-gic-v2m.o/
+irq-gic-v3-its.o/
+irq-gic-v3-its-pci-msi.o/
+irq-gic-v3-its-platform-msi.o/
+irq-gic-v4.o/
+
+/0              0           0     0     644     4848      `
+/11             0           0     0     644     156216    `
+/30             0           0     0     644     207896    `
+/44             0           0     0     644     283480    `
+/55             0           0     0     644     17352     `
+/73             0           0     0     644     186632    `
+/88             0           0     0     644     496040    `
+/106            0           0     0     644     160304    `
+/132            0           0     0     644     141432    `
+/163            0           0     0     644     84128     `

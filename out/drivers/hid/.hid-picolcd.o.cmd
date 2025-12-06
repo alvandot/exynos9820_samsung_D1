@@ -1,0 +1,1 @@
+cmd_drivers/hid/hid-picolcd.o :=  rm -f drivers/hid/hid-picolcd.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/hid/hid-picolcd.o drivers/hid/hid-picolcd_core.o drivers/hid/hid-picolcd_debugfs.o 

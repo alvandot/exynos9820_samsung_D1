@@ -1,0 +1,1 @@
+cmd_crypto/rsa_generic.o :=  rm -f crypto/rsa_generic.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD crypto/rsa_generic.o crypto/rsapubkey-asn1.o crypto/rsaprivkey-asn1.o crypto/rsa.o crypto/rsa_helper.o crypto/rsa-pkcs1pad.o 

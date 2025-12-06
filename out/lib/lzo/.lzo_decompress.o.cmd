@@ -1,0 +1,1 @@
+cmd_lib/lzo/lzo_decompress.o :=  rm -f lib/lzo/lzo_decompress.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD lib/lzo/lzo_decompress.o lib/lzo/lzo1x_decompress_safe.o 

@@ -1,0 +1,1 @@
+cmd_drivers/char/built-in.o :=   rm -f drivers/char/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/char/built-in.o drivers/char/mem.o drivers/char/random.o drivers/char/misc.o drivers/char/hw_random/built-in.o drivers/char/agp/built-in.o drivers/char/mst_ctrl.o 

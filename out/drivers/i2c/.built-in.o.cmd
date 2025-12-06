@@ -1,0 +1,1 @@
+cmd_drivers/i2c/built-in.o :=   rm -f drivers/i2c/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/i2c/built-in.o drivers/i2c/i2c-boardinfo.o drivers/i2c/i2c-core.o drivers/i2c/i2c-dev.o drivers/i2c/i2c-mux.o drivers/i2c/algos/built-in.o drivers/i2c/busses/built-in.o drivers/i2c/muxes/built-in.o 

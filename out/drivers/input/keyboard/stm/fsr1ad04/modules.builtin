@@ -1,0 +1,3 @@
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_sidekey.ko
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_fwu.ko
+kernel/drivers/input/keyboard/stm/fsr1ad04/stm_fsr_functions.ko
