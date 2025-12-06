@@ -1,1 +1,0 @@
-cmd_drivers/devfreq/exynos/built-in.o :=   rm -f drivers/devfreq/exynos/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/devfreq/exynos/built-in.o drivers/devfreq/exynos/exynos-devfreq.o drivers/devfreq/exynos/exynos-ppc.o 

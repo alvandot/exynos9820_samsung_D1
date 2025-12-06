@@ -1,1 +1,0 @@
-cmd_drivers/char/hw_random/built-in.o :=   rm -f drivers/char/hw_random/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/char/hw_random/built-in.o drivers/char/hw_random/rng-core.o drivers/char/hw_random/exyswd-rng.o drivers/char/hw_random/cavium-rng.o drivers/char/hw_random/cavium-rng-vf.o 

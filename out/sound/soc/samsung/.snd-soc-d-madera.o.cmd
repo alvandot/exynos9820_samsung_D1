@@ -1,1 +1,0 @@
-cmd_sound/soc/samsung/snd-soc-d-madera.o :=  rm -f sound/soc/samsung/snd-soc-d-madera.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD sound/soc/samsung/snd-soc-d-madera.o sound/soc/samsung/d_madera.o 

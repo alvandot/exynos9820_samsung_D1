@@ -1,1 +1,0 @@
-cmd_net/mptcp/built-in.o :=   rm -f net/mptcp/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD net/mptcp/built-in.o net/mptcp/mptcp.o net/mptcp/mptcp_coupled.o net/mptcp/mptcp_olia.o net/mptcp/mptcp_wvegas.o net/mptcp/mptcp_fullmesh.o 

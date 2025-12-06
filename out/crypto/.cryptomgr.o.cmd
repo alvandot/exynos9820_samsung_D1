@@ -1,1 +1,0 @@
-cmd_crypto/cryptomgr.o :=  rm -f crypto/cryptomgr.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD crypto/cryptomgr.o crypto/algboss.o crypto/testmgr.o 

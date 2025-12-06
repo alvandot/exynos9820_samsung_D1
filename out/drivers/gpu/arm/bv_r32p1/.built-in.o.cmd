@@ -1,1 +1,0 @@
-cmd_drivers/gpu/arm/bv_r32p1/built-in.o :=   rm -f drivers/gpu/arm/bv_r32p1/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/gpu/arm/bv_r32p1/built-in.o drivers/gpu/arm/bv_r32p1/mali_kbase.o 

@@ -1,1 +1,0 @@
-cmd_lib/zlib_deflate/zlib_deflate.o :=  rm -f lib/zlib_deflate/zlib_deflate.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD lib/zlib_deflate/zlib_deflate.o lib/zlib_deflate/deflate.o lib/zlib_deflate/deftree.o lib/zlib_deflate/deflate_syms.o 

@@ -1,1 +1,0 @@
-cmd_net/unix/built-in.o :=   rm -f net/unix/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD net/unix/built-in.o net/unix/unix.o net/unix/scm.o 

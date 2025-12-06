@@ -1,1 +1,0 @@
-cmd_lib/lzo/lzo_compress.o :=  rm -f lib/lzo/lzo_compress.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD lib/lzo/lzo_compress.o lib/lzo/lzo1x_compress.o 

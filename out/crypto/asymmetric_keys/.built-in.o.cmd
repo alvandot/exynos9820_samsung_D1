@@ -1,1 +1,0 @@
-cmd_crypto/asymmetric_keys/built-in.o :=   rm -f crypto/asymmetric_keys/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD crypto/asymmetric_keys/built-in.o crypto/asymmetric_keys/asymmetric_keys.o crypto/asymmetric_keys/public_key.o crypto/asymmetric_keys/x509_key_parser.o 

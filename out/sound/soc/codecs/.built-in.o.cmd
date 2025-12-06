@@ -1,1 +1,0 @@
-cmd_sound/soc/codecs/built-in.o :=   rm -f sound/soc/codecs/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD sound/soc/codecs/built-in.o sound/soc/codecs/snd-soc-cs35l41.o sound/soc/codecs/snd-soc-cs47l92.o sound/soc/codecs/snd-soc-madera.o sound/soc/codecs/snd-soc-wm-adsp.o 

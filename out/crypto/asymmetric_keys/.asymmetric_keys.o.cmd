@@ -1,1 +1,0 @@
-cmd_crypto/asymmetric_keys/asymmetric_keys.o :=  rm -f crypto/asymmetric_keys/asymmetric_keys.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD crypto/asymmetric_keys/asymmetric_keys.o crypto/asymmetric_keys/asymmetric_type.o crypto/asymmetric_keys/restrict.o crypto/asymmetric_keys/signature.o 

@@ -1,1 +1,0 @@
-cmd_crypto/crypto_acompress.o :=  rm -f crypto/crypto_acompress.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD crypto/crypto_acompress.o crypto/acompress.o crypto/scompress.o 

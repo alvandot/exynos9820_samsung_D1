@@ -1,1 +1,0 @@
-cmd_sound/drivers/built-in.o :=   rm -f sound/drivers/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD sound/drivers/built-in.o sound/drivers/opl3/built-in.o sound/drivers/opl4/built-in.o sound/drivers/mpu401/built-in.o sound/drivers/vx/built-in.o sound/drivers/pcsp/built-in.o 

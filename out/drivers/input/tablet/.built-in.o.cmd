@@ -1,1 +1,0 @@
-cmd_drivers/input/tablet/built-in.o :=   rm -f drivers/input/tablet/built-in.o; ../toolchain/gcc-cfp/gcc-cfp-jopp-only/aarch64-linux-android-4.9/bin/aarch64-linux-android-ar rcSTPD drivers/input/tablet/built-in.o drivers/input/tablet/acecad.o drivers/input/tablet/aiptek.o drivers/input/tablet/gtco.o drivers/input/tablet/hanwang.o drivers/input/tablet/kbtab.o 
