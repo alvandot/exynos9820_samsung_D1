@@ -1,0 +1,7 @@
+out/
+gorhanhee/
+KernelSU/
+drivers/kernelsu/
+*.deb
+AIK/split_img/boot.img-ramdisk.cpio.gz
+AIK/ramdisk/system/etc/ramdisk/build.prop
