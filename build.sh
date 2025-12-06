@@ -64,30 +64,34 @@ if [ -d "${LOCATION}/KernelSU" ]; then
     fi
     
     # =============================================
-    # Fix MODULE_IMPORT_NS() for Linux 4.14
-    # This macro was introduced in Linux 5.4+
-    # Best practice: Use conditional compilation
+    # Fix Linux 4.14 compatibility issues
+    # 1. MODULE_IMPORT_NS() - introduced in Linux 5.4+
+    # 2. TWA_RESUME - introduced in Linux 5.1+
     # =============================================
     echo "  Patching KernelSU for Linux 4.14 compatibility..."
     
-    # Find all .c files with MODULE_IMPORT_NS and patch them
+    # Fix 1: Comment out MODULE_IMPORT_NS (not available in 4.14)
+    echo "    [1/2] Fixing MODULE_IMPORT_NS..."
     for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
-        if grep -q "MODULE_IMPORT_NS" "$KSU_FILE" && ! grep -q "LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)" "$KSU_FILE"; then
-            echo "    Patching: $(basename $KSU_FILE)"
-            
-            # Ensure linux/version.h is included at the top
-            if ! grep -q "#include <linux/version.h>" "$KSU_FILE"; then
-                # Add after the first #include line
-                sed -i '0,/#include/{s/#include/#include <linux\/version.h>\n&/}' "$KSU_FILE"
-            fi
-            
-            # Replace MODULE_IMPORT_NS with conditional version
-            # This is the best practice approach - wrap with version check
-            sed -i 's/^\(MODULE_IMPORT_NS(.*)\);$/#if LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)\n\1;\n#endif/' "$KSU_FILE"
+        if grep -q "MODULE_IMPORT_NS" "$KSU_FILE"; then
+            echo "      Patching: $(basename $KSU_FILE)"
+            # Simply comment out MODULE_IMPORT_NS lines
+            sed -i 's/^MODULE_IMPORT_NS/\/\/ MODULE_IMPORT_NS/g' "$KSU_FILE"
         fi
     done
+    echo "    ✅ MODULE_IMPORT_NS commented out"
     
-    echo "  ✅ MODULE_IMPORT_NS patched for Linux 4.14 compatibility"
+    # Fix 2: Replace TWA_RESUME with 0 (TWA_RESUME was added in Linux 5.1)
+    echo "    [2/2] Fixing TWA_RESUME..."
+    for KSU_FILE in $(find "${LOCATION}/KernelSU/kernel" -name "*.c" -type f 2>/dev/null); do
+        if grep -q "TWA_RESUME" "$KSU_FILE"; then
+            echo "      Patching: $(basename $KSU_FILE)"
+            # Replace TWA_RESUME with 0 (simple approach for 4.14)
+            # In older kernels, task_work_add takes the 3rd argument as 0
+            sed -i 's/TWA_RESUME/0/g' "$KSU_FILE"
+        fi
+    done
+    echo "    ✅ TWA_RESUME fixed for Linux 4.14"
     
     echo "✅ SukiSU Ultra source integrated successfully!"
 else
