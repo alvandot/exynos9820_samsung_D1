@@ -27,18 +27,20 @@ cp -ar "${LOCATION}/early_setting/tzdev_case/tzdev_B" "${LOCATION}/drivers/misc/
 # ===============================================
 # Step 1: SukiSU Ultra Integration (Source Level)
 # Uses SukiSU-Ultra's own setup script for Non-GKI support
-# https://github.com/SukiSU-Ultra/SukiSU-Ultra
+# https://github.com/SukiSU-Ultra/SukiSU-Ultra/blob/main/docs/guide/how-to-integrate.md
 # ===============================================
 echo "=============================================="
 echo "🔓 Step 1: SukiSU Ultra Integration (Source Level)"
 echo "=============================================="
 
-SUKISU_VERSION="${SUKISU_VERSION:-v1.0.3}"
-echo "Using SukiSU Ultra version: ${SUKISU_VERSION}"
+# For Non-GKI kernel, use 'nongki' branch
+# Reference: https://github.com/SukiSU-Ultra/SukiSU-Ultra/blob/main/docs/guide/how-to-integrate.md
+SUKISU_BRANCH="${SUKISU_BRANCH:-nongki}"
+echo "Using SukiSU Ultra branch: ${SUKISU_BRANCH} (for Non-GKI kernel)"
 
-# Run SukiSU Ultra setup script (with Non-GKI support)
+# Run SukiSU Ultra setup script with nongki branch
 cd "${LOCATION}"
-curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s "${SUKISU_VERSION}"
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s "${SUKISU_BRANCH}"
 
 if [ -d "${LOCATION}/KernelSU" ]; then
     echo "✅ SukiSU Ultra source integrated successfully!"
@@ -48,27 +50,119 @@ fi
 echo "=============================================="
 
 # ===============================================
-# Step 2: SukiSU Ultra Non-GKI Configuration
-# Configure kernel for Non-GKI kernel 4.14
+# Step 2: SukiSU Ultra Non-GKI Configuration & Manual Hooks
+# For Non-GKI kernel 4.14, manual hooks are required
+# Reference: https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md
 # ===============================================
 echo "=============================================="
-echo "🔓 Step 2: SukiSU Ultra Non-GKI Configuration"
+echo "🔓 Step 2: SukiSU Ultra Non-GKI Manual Hooks"
 echo "=============================================="
 
-# SukiSU Ultra provides Non-GKI support out of the box
 if [ -d "${LOCATION}/KernelSU" ]; then
-    # Check kernel version
     KERNEL_VERSION=$(make kernelversion 2>/dev/null | head -1)
     echo "Kernel version: ${KERNEL_VERSION}"
     
-    # Enable CONFIG_KSU in defconfig if not already present
     DEFCONFIG="${LOCATION}/arch/arm64/configs/exynos9820-${DEVICE}_defconfig"
+    
+    # Enable KSU configs for Non-GKI manual hook
+    echo "Configuring defconfig for Non-GKI manual hooks..."
+    
+    # Add CONFIG_KSU=y if not present
     if ! grep -q "CONFIG_KSU=y" "$DEFCONFIG" 2>/dev/null; then
-        echo "Adding CONFIG_KSU=y to defconfig..."
         echo "CONFIG_KSU=y" >> "$DEFCONFIG"
+        echo "  Added: CONFIG_KSU=y"
     fi
     
-    echo "✅ SukiSU Ultra Non-GKI support configured!"
+    # Add CONFIG_KSU_MANUAL_HOOK=y for Non-GKI
+    if ! grep -q "CONFIG_KSU_MANUAL_HOOK=y" "$DEFCONFIG" 2>/dev/null; then
+        echo "CONFIG_KSU_MANUAL_HOOK=y" >> "$DEFCONFIG"
+        echo "  Added: CONFIG_KSU_MANUAL_HOOK=y"
+    fi
+    
+    # =============================================
+    # Apply Manual Hooks to Kernel Source
+    # These hooks are required for Non-GKI kernels
+    # =============================================
+    echo ""
+    echo "Applying manual hooks to kernel source..."
+    
+    # Hook 1: fs/exec.c - execveat hook
+    EXEC_C="${LOCATION}/fs/exec.c"
+    if [ -f "$EXEC_C" ] && ! grep -q "ksu_handle_execveat" "$EXEC_C"; then
+        echo "  Patching fs/exec.c..."
+        # Find do_execveat_common or similar function and add hook
+        # This is a simplified patch - actual implementation may vary
+        sed -i '/^static int do_execveat_common/,/^{/ {
+            /^{/a\
+#ifdef CONFIG_KSU\n\textern bool ksu_execveat_hook __read_mostly;\n\textern int ksu_handle_execveat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags);\n\textern int ksu_handle_execveat_sucompat(int *fd, struct filename **filename_ptr, void *argv, void *envp, int *flags);\n\tif (unlikely(ksu_execveat_hook))\n\t\tksu_handle_execveat(\&fd, \&filename, \&argv, \&envp, \&flags);\n\telse\n\t\tksu_handle_execveat_sucompat(\&fd, \&filename, \&argv, \&envp, \&flags);\n#endif
+        }' "$EXEC_C" 2>/dev/null || echo "    Note: Manual patch may be needed for fs/exec.c"
+    fi
+    
+    # Hook 2: fs/open.c - faccessat hook
+    OPEN_C="${LOCATION}/fs/open.c"
+    if [ -f "$OPEN_C" ] && ! grep -q "ksu_handle_faccessat" "$OPEN_C"; then
+        echo "  Patching fs/open.c..."
+        sed -i '/^long do_faccessat/,/^{/ {
+            /^{/a\
+#ifdef CONFIG_KSU\n\textern int ksu_handle_faccessat(int *dfd, const char __user **filename_user, int *mode, int *flags);\n\tksu_handle_faccessat(\&dfd, \&filename, \&mode, NULL);\n#endif
+        }' "$OPEN_C" 2>/dev/null || echo "    Note: Manual patch may be needed for fs/open.c"
+    fi
+    
+    # Hook 3: fs/read_write.c - vfs_read hook
+    RW_C="${LOCATION}/fs/read_write.c"
+    if [ -f "$RW_C" ] && ! grep -q "ksu_handle_vfs_read" "$RW_C"; then
+        echo "  Patching fs/read_write.c..."
+        sed -i '/^ssize_t vfs_read/,/^{/ {
+            /^{/a\
+#ifdef CONFIG_KSU\n\textern bool ksu_vfs_read_hook __read_mostly;\n\textern int ksu_handle_vfs_read(struct file **file_ptr, char __user **buf_ptr, size_t *count_ptr, loff_t **pos);\n\tif (unlikely(ksu_vfs_read_hook))\n\t\tksu_handle_vfs_read(\&file, \&buf, \&count, \&pos);\n#endif
+        }' "$RW_C" 2>/dev/null || echo "    Note: Manual patch may be needed for fs/read_write.c"
+    fi
+    
+    # Hook 4: fs/stat.c - stat hook
+    STAT_C="${LOCATION}/fs/stat.c"
+    if [ -f "$STAT_C" ] && ! grep -q "ksu_handle_stat" "$STAT_C"; then
+        echo "  Patching fs/stat.c..."
+        # Try vfs_statx first, then vfs_fstatat for older kernels
+        if grep -q "^int vfs_statx" "$STAT_C"; then
+            sed -i '/^int vfs_statx/,/^{/ {
+                /^{/a\
+#ifdef CONFIG_KSU\n\textern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);\n\tksu_handle_stat(\&dfd, \&filename, \&flags);\n#endif
+            }' "$STAT_C" 2>/dev/null
+        elif grep -q "^int vfs_fstatat" "$STAT_C"; then
+            sed -i '/^int vfs_fstatat/,/^{/ {
+                /^{/a\
+#ifdef CONFIG_KSU\n\textern int ksu_handle_stat(int *dfd, const char __user **filename_user, int *flags);\n\tksu_handle_stat(\&dfd, \&filename, \&flag);\n#endif
+            }' "$STAT_C" 2>/dev/null
+        fi
+        echo "    Note: Manual patch may be needed for fs/stat.c"
+    fi
+    
+    # Hook 5: drivers/input/input.c - Safe Mode support
+    INPUT_C="${LOCATION}/drivers/input/input.c"
+    if [ -f "$INPUT_C" ] && ! grep -q "ksu_handle_input_handle_event" "$INPUT_C"; then
+        echo "  Patching drivers/input/input.c (Safe Mode)..."
+        sed -i '/^static void input_handle_event/,/^{/ {
+            /^{/a\
+#ifdef CONFIG_KSU\n\textern bool ksu_input_hook __read_mostly;\n\textern int ksu_handle_input_handle_event(unsigned int *type, unsigned int *code, int *value);\n\tif (unlikely(ksu_input_hook))\n\t\tksu_handle_input_handle_event(\&type, \&code, \&value);\n#endif
+        }' "$INPUT_C" 2>/dev/null || echo "    Note: Manual patch may be needed for drivers/input/input.c"
+    fi
+    
+    # Hook 6: fs/devpts/inode.c - pm command support
+    DEVPTS_C="${LOCATION}/fs/devpts/inode.c"
+    if [ -f "$DEVPTS_C" ] && ! grep -q "ksu_handle_devpts" "$DEVPTS_C"; then
+        echo "  Patching fs/devpts/inode.c (pm command)..."
+        sed -i '/^void \*devpts_get_priv/,/^{/ {
+            /^{/a\
+#ifdef CONFIG_KSU\n\textern int ksu_handle_devpts(struct inode*);\n\tksu_handle_devpts(dentry->d_inode);\n#endif
+        }' "$DEVPTS_C" 2>/dev/null || echo "    Note: Manual patch may be needed for fs/devpts/inode.c"
+    fi
+    
+    echo ""
+    echo "⚠️  Note: Automatic patching may not work for all kernel versions."
+    echo "   If build fails, manual patching of kernel source may be required."
+    echo "   See: https://github.com/tiann/KernelSU/blob/main/website/docs/guide/how-to-integrate-for-non-gki.md"
+    echo ""
+    echo "✅ SukiSU Ultra Non-GKI configuration completed!"
 else
     echo "⚠️  KernelSU directory not found, skipping SukiSU patches"
 fi
