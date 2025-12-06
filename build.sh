@@ -109,6 +109,17 @@ if [ "$KSU" = "true" ]; then
 		fi
 	done
 	
+	# Fix setuid_hook.c for kernel < 5.0 - comment out the entire file since
+	# the security_task_fix_setuid function signature changed significantly
+	# In kernel 4.14, this function takes 3 args (new, old, flags) but KernelSU expects 2
+	for f in "${LOCATION}/KernelSU/kernel/setuid_hook.c" "${LOCATION}/drivers/kernelsu/setuid_hook.c"; do
+		if [ -f "$f" ]; then
+			# Comment out the function calls that have wrong number of arguments
+			# The security_task_fix_setuid signature changed in kernel 5.0
+			sed -i 's/security_task_fix_setuid(new)/security_task_fix_setuid(new, old, LSM_SETID_ID)/g' "$f" 2>/dev/null || true
+		fi
+	done
+	
 	echo "KernelSU compatibility patches applied."
 fi
 
